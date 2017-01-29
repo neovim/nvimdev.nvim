@@ -128,10 +128,20 @@ function! s:errors_download_job(job, data, event) dict abort
 endfunction
 
 
-function! s:build_ctags() abort
+function! s:build_ctags(...) abort
+  if !a:0
+    if exists('s:ctags_timer')
+      call timer_stop(s:ctags_timer)
+    endif
+    redraw
+    let s:ctags_timer = timer_start(1000, function('s:build_ctags'))
+    return
+  endif
+
+  unlet! s:ctags_timer
+
   let s:started = reltimefloat(reltime())
   if s:ctags_job
-    echomsg 'ctags in progress'
     return
   endif
 
