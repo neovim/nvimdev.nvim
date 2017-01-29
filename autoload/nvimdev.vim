@@ -1,7 +1,12 @@
 let s:plugin = expand('<sfile>:p:h:h')
 let s:doc_url_base = 'https://raw.githubusercontent.com/neovim/doc/gh-pages/'
 let s:errors_json = 'reports/clint/errors.json'
-let s:ctags_job = 0
+let s:include_paths = [
+      \ 'src',
+      \ '.deps/usr/include',
+      \ 'build/src/nvim/auto',
+      \ 'build/include',
+      \ ]
 
 
 function! nvimdev#init(path) abort
@@ -78,6 +83,13 @@ function! nvimdev#init(path) abort
   call add(lua_makers, 'nvimluacheck')
   let g:neomake_lua_enabled_makers = lua_makers
 
+  let s:cscope_exe = get(g:, 'nvimdev_cscope_exe', 'cscope')
+  let s:ctags_exe = get(g:, 'nvimdev_ctags_exe', 'ctags')
+
+  if executable(s:cscope_exe)
+    set cscopequickfix=s-,c-,d-,i-,t-,e-,a-
+  endif
+
   augroup nvimdev
     autocmd!
     autocmd BufRead,BufNewFile *.h set filetype=c
@@ -85,7 +97,7 @@ function! nvimdev#init(path) abort
       autocmd BufWritePost *.c,*.h,*.vim Neomake
     endif
     if get(g:, 'nvimdev_auto_ctags', 1)
-      autocmd BufWritePost *.c,*.h,*.lua call s:build_ctags()
+      autocmd BufWritePost *.c,*.h,*.lua call s:build_db()
     endif
     if get(g:, 'nvimdev_build_readonly', 1)
       execute 'autocmd BufRead ' . s:path . '/build/* setlocal readonly nomodifiable'
@@ -128,45 +140,79 @@ function! s:errors_download_job(job, data, event) dict abort
 endfunction
 
 
-function! s:build_ctags(...) abort
+function! s:build_db(...) abort
   if !a:0
-    if exists('s:ctags_timer')
-      call timer_stop(s:ctags_timer)
+    if exists('s:db_timer')
+      call timer_stop(s:db_timer)
     endif
     redraw
-    let s:ctags_timer = timer_start(1000, function('s:build_ctags'))
+    let s:db_timer = timer_start(1000, function('s:build_db'))
     return
   endif
 
-  unlet! s:ctags_timer
+  unlet! s:db_timer
 
-  let s:started = reltimefloat(reltime())
-  if s:ctags_job
-    return
+  if executable(s:ctags_exe)
+    call s:build_ctags_db()
   endif
 
-  let cmd = ['ctags', '--languages=C,C++,Lua', '-R',
-        \    '-I', 'EXTERN', '-I', 'INIT',
-        \    '--exclude=.git*',
-        \    'src', 'build/include', 'build/src/nvim/auto', '.deps/build/src']
-  let opt = {
-        \ 'cwd': s:path,
-        \ 'on_exit': function('s:build_ctags_job'),
-        \ }
-
-  call jobstart(cmd, opt)
+  if executable(s:cscope_exe)
+    call s:build_cscope_db()
+  endif
 endfunction
 
 
-function! s:build_ctags_job(job, data, event) dict abort
+function! s:start_db_job(db, cmd) abort
+  let v = a:db . '_job'
+  if exists('s:' . v)
+    echo a:db 'busy'
+    return
+  endif
+
+  let opt = {
+        \ 'db': a:db,
+        \ 'cwd': s:path,
+        \ 'on_exit': function('s:build_db_job'),
+        \ }
+
+  let s:{v} = jobstart(a:cmd, opt)
+endfunction
+
+
+function! s:build_ctags_db() abort
+  let cmd = [s:ctags_exe, '--languages=C,C++,Lua', '-R',
+        \    '-I', 'EXTERN', '-I', 'INIT',
+        \    '--exclude=.git*',
+        \    'src', 'build/include', 'build/src/nvim/auto', '.deps/build/src']
+
+  call s:start_db_job('ctags', cmd)
+endfunction
+
+
+function! s:build_cscope_db() abort
+  let cmd = [s:cscope_exe, '-Rb']
+  for inc in s:include_paths
+    let cmd += ['-I', printf('%s/%s', s:path, inc)]
+  endfor
+
+  call s:start_db_job('cscope', cmd)
+endfunction
+
+
+function! s:build_db_job(job, data, event) dict abort
   " XXX: Log stdout/stderr on error without being obtrustive and without
   " overwriting neomake results?
   if a:event == 'exit'
-    let s:ctags_job = 0
+    unlet! s:{self.db . '_job'}
     if a:data != 0
       echohl ErrorMsg
-      echo '[nvimdev] ctags failed'
+      echo '[nvimdev]' self.db 'failed'
       echohl None
+    elseif self.db == 'cscope'
+      let cscope_db = printf('%s/cscope.out', s:path)
+      if filereadable(cscope_db)
+        execute 'cscope add' cscope_db
+      endif
     endif
   endif
 endfunction
