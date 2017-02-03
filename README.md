@@ -101,6 +101,10 @@ Set files loaded from `buffer/` or `.deps/` as readonly.
 - [helpful.vim][]: Displays version information for helptags.
 - [dyslexic.vim][]: Mistyping variables in giant source files suck.
 
+## TODO
+
+- Command to run tests
+
 
 [Neovim]: https://github.com/neovim/neovim
 [Neomake]: https://github.com/neomake/neomake
