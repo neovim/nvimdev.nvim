@@ -88,7 +88,7 @@ by default since cool people would have this already setup.
 
 #### `g:nvimdev_build_readonly` (default `1`)
 
-Set files loaded from `buffer/` or `.deps/` as readonly.
+Set files loaded from `build/` or `.deps/` as readonly.
 
 
 ## Useful plugins
