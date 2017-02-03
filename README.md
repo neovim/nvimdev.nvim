@@ -19,7 +19,7 @@ Provides some nicities for hacking on [Neovim][]:
 Neovim has a pretty large code base and is full of Vim's rich and mysterious
 history.  I have little knowledge of either and [wrote a script][gist] to help
 me get around and automate some things.  People have shown interest in using
-it, so it's now a plugin that will make maintenance.
+it, so it's now a plugin that will make maintenance easier.
 
 ## Installation
 
