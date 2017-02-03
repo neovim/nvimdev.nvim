@@ -14,6 +14,13 @@ Provides some nicities for hacking on [Neovim][]:
 - Filetype settings appropriate for Neovim's source code.
 
 
+## Why?
+
+Neovim has a pretty large code base and is full of Vim's rich and mysterious
+history.  I have little knowledge of either and [wrote a script][gist] to help
+me get around and automate some things.  People have shown interest in using
+it, so it's now a plugin that will make maintenance.
+
 ## Installation
 
 😑
@@ -104,3 +111,4 @@ Set files loaded from `buffer/` or `.deps/` as readonly.
 [wstrip.vim]: https://github.com/tweekmonster/wstrip.vim
 [helpful.vim]: https://github.com/tweekmonster/helpful.vim
 [dyslexic.vim]: https://github.com/tweekmonster/dyslexic.vim
+[gist]: https://gist.github.com/tweekmonster/8f9cfb36a56d7d1bb6a73e0f9589d81f
