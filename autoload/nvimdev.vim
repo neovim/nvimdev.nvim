@@ -87,7 +87,8 @@ function! nvimdev#init(path) abort
   let s:ctags_exe = get(g:, 'nvimdev_ctags_exe', 'ctags')
 
   if executable(s:cscope_exe)
-    set cscopequickfix=s-,c-,d-,i-,t-,e-,a-
+    let &cscopeprg = s:cscope_exe
+    set nocscopeverbose cscopequickfix=s-,c-,d-,i-,t-,e-,a-
   endif
 
   augroup nvimdev
@@ -124,6 +125,57 @@ function! nvimdev#update_clint_errors() abort
         \ 'on_exit': function('s:errors_download_job'),
         \ }
   call jobstart(cmd, opts)
+endfunction
+
+
+function! s:find_function_name() abort
+  let name = ''
+  let view = winsaveview()
+  " Cheating a bit.  Expect an open curly brace at the beginning of a line
+  " to mark the function body's starting position.
+  if search('^{', 'bW')
+    call search('\S\s*(', 'bW')
+    let name = matchstr(getline('.'), '\k\+\s*\ze(')
+  endif
+  call winrestview(view)
+  return name
+endfunction
+
+
+function! s:cscope_lookup(type, name) abort
+  if empty(a:name)
+    return
+  endif
+
+  execute 'cscope find' a:type a:name
+endfunction
+
+
+function! nvimdev#cscope_lookup_callers(...) abort
+  let name = ''
+  if a:0
+    let name = a:1
+  endif
+
+  if empty(name)
+    let name = s:find_function_name()
+  endif
+
+  call s:cscope_lookup('c', name)
+endfunction
+
+
+function! nvimdev#cscope_lookup_callees(...) abort
+  let name = ''
+  if a:0
+    let name = a:1
+  endif
+
+  if empty(name)
+    let name = s:find_function_name()
+  endif
+
+  call s:cscope_lookup('d', name)
 endfunction
 
 
