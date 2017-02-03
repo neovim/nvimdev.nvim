@@ -86,9 +86,12 @@ function! nvimdev#init(path) abort
   let s:cscope_exe = get(g:, 'nvimdev_cscope_exe', 'cscope')
   let s:ctags_exe = get(g:, 'nvimdev_ctags_exe', 'ctags')
 
-  if executable(s:cscope_exe)
+  if get(g:, 'nvimdev_auto_cscope', 0) && executable(s:cscope_exe)
     let &cscopeprg = s:cscope_exe
-    set nocscopeverbose cscopequickfix=s-,c-,d-,i-,t-,e-,a-
+    let cscope_db = printf('%s/cscope.out', s:path)
+    if filereadable(cscope_db)
+      execute 'cscope add' cscope_db
+    endif
   endif
 
   augroup nvimdev
@@ -97,7 +100,7 @@ function! nvimdev#init(path) abort
     if get(g:, 'nvimdev_auto_lint', 1)
       autocmd BufWritePost *.c,*.h,*.vim Neomake
     endif
-    if get(g:, 'nvimdev_auto_ctags', 1)
+    if get(g:, 'nvimdev_auto_ctags', 1) || get(g:, 'nvimdev_auto_cscope', 0)
       autocmd BufWritePost *.c,*.h,*.lua call s:build_db()
     endif
     if get(g:, 'nvimdev_build_readonly', 1)
@@ -148,6 +151,24 @@ function! s:cscope_lookup(type, name) abort
   endif
 
   execute 'cscope find' a:type a:name
+
+  if &cscopequickfix =~# '\<'.a:type.'[-+]\?'
+    let qflist = getqflist()
+    let seen = []
+    let final_qflist = []
+    for entry in qflist
+      if !entry.bufnr
+        continue
+      endif
+      let key = printf("%s:%d", bufname(entry.bufnr), entry.lnum)
+      if index(seen, key) == -1
+        call add(final_qflist, entry)
+      endif
+    endfor
+
+    call setqflist(final_qflist, 'r', 'cscope '.a:type)
+    copen
+  endif
 endfunction
 
 
@@ -204,11 +225,11 @@ function! s:build_db(...) abort
 
   unlet! s:db_timer
 
-  if executable(s:ctags_exe)
+  if get(g:, 'nvimdev_auto_ctags', 1) && executable(s:ctags_exe)
     call s:build_ctags_db()
   endif
 
-  if executable(s:cscope_exe)
+  if get(g:, 'nvimdev_auto_cscope', 0) && executable(s:cscope_exe)
     call s:build_cscope_db()
   endif
 endfunction
