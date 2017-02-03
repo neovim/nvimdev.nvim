@@ -30,7 +30,7 @@ function! nvimdev#init(path) abort
         \ 'exe': s:path.'/src/clint.py',
         \ 'append_file': 0,
         \ 'cwd': s:path,
-        \ 'errorformat': '%f:%l: %m',
+        \ 'errorformat': '%-GTotal errors%.%#,%f:%l: %m',
         \ }
 
   function linter.fn(jobinfo) abort
