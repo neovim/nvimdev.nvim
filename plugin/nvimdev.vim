@@ -11,9 +11,25 @@ function! s:check_nvim() abort
 
   " Look for 'scripts/shadacat.py'.
   " It's a pretty unique filename and it sounds cool, like 'shadow cat'.
-  let file = findfile('scripts/shadacat.py', '.;')
-  if !empty(file) && filereadable('scripts/shadacat.py')
-    call nvimdev#init(fnamemodify(file, ':p:h:h'))
+  let file_hint = '/scripts/shadacat.py'
+  let last_path = expand('%')
+  let path = fnamemodify(last_path, ':h')
+
+  while path != last_path
+    if filereadable(path . file_hint)
+      break
+    endif
+
+    let last_path = path
+    let path = fnamemodify(path, ':h')
+    if empty(path)
+      break
+    endif
+  endwhile
+
+  let found = path . file_hint
+  if filereadable(found)
+    call nvimdev#init(fnamemodify(found, ':p:h:h'))
   endif
 endfunction
 
