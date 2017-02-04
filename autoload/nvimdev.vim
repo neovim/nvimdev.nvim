@@ -46,6 +46,10 @@ function! nvimdev#init(path) abort
   let c_makers = []
   let s:ctags_file = s:path . '/tmp/tags'
 
+  for inc in s:include_paths
+    let &path.=','.s:path.'/'.inc
+  endfor
+
   if exists('#clang2') && index(c_makers, 'clang') == -1
     " deoplete-clang2 (electric boogaloo) automatically sets compile flags.
     call add(c_makers, 'clang')
