@@ -1,6 +1,8 @@
 let s:plugin = expand('<sfile>:p:h:h')
 let s:doc_url_base = 'https://raw.githubusercontent.com/neovim/doc/gh-pages/'
 let s:errors_json = 'reports/clint/errors.json'
+let s:neomake_warn = 1
+let s:neomake_force_load = 1
 let s:include_paths = [
       \ 'src',
       \ '.deps/usr/include',
@@ -10,10 +12,26 @@ let s:include_paths = [
 
 
 function! nvimdev#init(path) abort
+  if s:neomake_force_load && !exists(':Neomake')
+    let g:neomake_dummy_maker = {
+          \ 'exe': 'test',
+          \ 'args': ['1'],
+          \ 'append_file': 0,
+          \ 'errorformat': '%-G%.%#',
+          \ }
+
+    silent! Neomake! dummy
+    unlet! g:neomake_dummy_maker
+    let s:neomake_force_load = 0
+  endif
+
   if exists(':Neomake') != 2
-    echohl WarningMsg
-    echo '[nvimdev] Neomake is not installed'
-    echohl None
+    if s:neomake_warn
+      echohl WarningMsg
+      echomsg '[nvimdev] Neomake is not installed'
+      echohl None
+      let s:neomake_warn = 0
+    endif
     return
   endif
 
