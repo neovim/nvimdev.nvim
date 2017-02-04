@@ -1,6 +1,4 @@
 let s:plugin = expand('<sfile>:p:h:h')
-let s:doc_url_base = 'https://raw.githubusercontent.com/neovim/doc/gh-pages/'
-let s:errors_json = 'reports/clint/errors.json'
 let s:neomake_warn = 1
 let s:neomake_force_load = 1
 let s:include_paths = [
