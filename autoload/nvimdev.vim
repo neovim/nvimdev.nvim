@@ -10,6 +10,13 @@ let s:include_paths = [
 
 
 function! nvimdev#init(path) abort
+  if exists(':Neomake') != 2
+    echohl WarningMsg
+    echo '[nvimdev] Neomake is not installed'
+    echohl None
+    return
+  endif
+
   let g:nvimdev_loaded = 2
   let s:path = a:path
   let s:errors_root = s:path . '/tmp/errors'
@@ -25,6 +32,12 @@ function! nvimdev#init(path) abort
     " deoplete-clang2 (electric boogaloo) automatically sets compile flags.
     call add(c_makers, 'clang')
   endif
+
+  let g:neomake_make_maker = {
+        \ 'exe': 'make',
+        \ 'args': ['VERBOSE=1'],
+        \ 'errorformat': '%.%#../%f:%l:%c: %t%.%#: %m',
+        \ }
 
   let linter = {
         \ 'exe': s:path.'/src/clint.py',
