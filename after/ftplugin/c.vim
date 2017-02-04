@@ -9,6 +9,7 @@ setlocal textwidth=80
 setlocal comments=:///,://
 setlocal modelines=0
 setlocal cinoptions=0(
+setlocal commentstring=//\ %s
 
 if get(g:, 'nvimdev_auto_cscope', 0)
   command! -buffer -nargs=? Callers call nvimdev#cscope_lookup_callers(<q-args>)
