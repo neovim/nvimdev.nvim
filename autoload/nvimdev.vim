@@ -10,7 +10,9 @@ let s:include_paths = [
 
 
 function! nvimdev#init(path) abort
-  if s:neomake_force_load && !exists(':Neomake')
+  if s:neomake_force_load
+    " Use a dummy maker to force load the plugin (if lazy), and
+    " autoload/neomake.vim
     let g:neomake_dummy_maker = {
           \ 'exe': 'test',
           \ 'args': ['1'],
@@ -23,7 +25,7 @@ function! nvimdev#init(path) abort
     let s:neomake_force_load = 0
   endif
 
-  if exists(':Neomake') != 2
+  if !exists('*neomake#Make')
     if s:neomake_warn
       echohl WarningMsg
       echomsg '[nvimdev] Neomake is not installed'
