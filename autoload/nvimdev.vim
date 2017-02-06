@@ -55,17 +55,30 @@ function! nvimdev#init(path) abort
     call add(c_makers, 'clang')
   endif
 
+  " Use with :Neomake! make
   let g:neomake_make_maker = {
         \ 'exe': 'make',
         \ 'args': ['VERBOSE=1'],
-        \ 'errorformat': '%.%#../%f:%l:%c: %t%.%#: %m',
+        \ 'errorformat': '%f:%l:%c: %t%.%#: %m,'
+        \               .'%-Gninja%.%#,'
+        \               .'%-Gmake:%.%#,'
+        \               .'%-G[%.%#,'
+        \               .'%-G%.%#recipe for target%.%#',
+        \ 'remove_invalid_entries': get(g:, 'neomake_remove_invalid_entries', 0),
         \ }
+
+  function g:neomake_make_maker.postprocess(entry) abort
+    if (a:entry.type ==? 'n')
+      let a:entry.type = 'I'
+    endif
+  endfunction
 
   let linter = {
         \ 'exe': s:path.'/src/clint.py',
         \ 'append_file': 0,
         \ 'cwd': s:path,
         \ 'errorformat': '%-GTotal errors%.%#,%f:%l: %m',
+        \ 'remove_invalid_entries': get(g:, 'neomake_remove_invalid_entries', 0),
         \ }
 
   function linter.fn(jobinfo) abort
