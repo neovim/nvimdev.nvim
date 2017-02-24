@@ -56,16 +56,19 @@ function! nvimdev#init(path) abort
   endif
 
   " Use with :Neomake! make
+  " make will try to build  both dependancies and nvim
+  " Ignore entering .deps directory not to mess the quickfix-dirstack
+  let l:efm_backup=&errorformat
+  set errorformat&vim
+  let s:tmp_efm='%-Gninja: Entering directory `.deps'',' . &errorformat
   let g:neomake_make_maker = {
         \ 'exe': 'make',
         \ 'args': ['VERBOSE=1'],
-        \ 'errorformat': '%f:%l:%c: %t%.%#: %m,'
-        \               .'%-Gninja%.%#,'
-        \               .'%-Gmake:%.%#,'
-        \               .'%-G[%.%#,'
-        \               .'%-G%.%#recipe for target%.%#',
-        \ 'remove_invalid_entries': get(g:, 'neomake_remove_invalid_entries', 0),
+        \ 'errorformat': s:tmp_efm,
+        \ 'remove_invalid_entries': get(g:, 'neomake_remove_invalid_entries', 0)
         \ }
+
+  set errorformat=l:efm_backup
 
   function g:neomake_make_maker.postprocess(entry) abort
     if (a:entry.type ==? 'n')
