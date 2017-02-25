@@ -81,9 +81,13 @@ any aliased return types it finds.  I'm tempted to write a dumb script that
 uses the `tags` file to build a cross refrence database.
 
 
-#### `g:nvimdev_auto_lint` (default `0`)
+#### `g:nvimdev_auto_lint` (default `1`)
 
-Automatically run `:Neomake` to lint sources after writing buffers.  Disabled
+Adds nvim linter to `g:neomake_c_enabled_makers`.
+
+#### `g:nvimdev_autorun_neomake` (default `0`)
+
+Automatically run `:Neomake` after writing buffers.  Disabled
 by default since cool people would have this already setup.
 
 #### `g:nvimdev_build_readonly` (default `1`)

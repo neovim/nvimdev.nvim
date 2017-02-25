@@ -110,7 +110,9 @@ function! nvimdev#init(path) abort
 
   let g:neomake_c_lint_maker = linter
 
-  call add(c_makers, 'lint')
+  if get(g:, 'nvimdev_auto_lint', 1)
+	call add(c_makers, 'lint')
+  endif
   let g:neomake_c_enabled_makers = c_makers
 
   let linter = neomake#makers#ft#lua#luacheck()
@@ -145,7 +147,7 @@ function! nvimdev#init(path) abort
   augroup nvimdev
     autocmd!
     autocmd BufRead,BufNewFile *.h set filetype=c
-    if get(g:, 'nvimdev_auto_lint', 1)
+    if get(g:, 'nvimdev_autorun_neomake', 0)
       autocmd BufWritePost *.c,*.h,*.vim Neomake
     endif
     if get(g:, 'nvimdev_auto_ctags', 1) || get(g:, 'nvimdev_auto_cscope', 0)
