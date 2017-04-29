@@ -85,7 +85,7 @@ function! nvimdev#init(path) abort
         \ }
 
   function linter.fn(jobinfo) abort
-    let bufname = expand('%')
+    let bufname = substitute(expand('%:p'), s:path . "/" , "", "")
     let errorfile = printf('%s/%s.json', s:errors_root, bufname)
     let maker = copy(self)
     let maker.args = []
