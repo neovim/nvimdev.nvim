@@ -61,6 +61,8 @@ function! nvimdev#init(path) abort
   endfunction
 
   let linter = {
+        \ 'name': 'nvimdev-clint',
+        \ 'short_name': 'lint',
         \ 'exe': s:path.'/src/clint.py',
         \ 'append_file': 0,
         \ 'cwd': s:path,
