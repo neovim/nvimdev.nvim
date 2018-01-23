@@ -129,7 +129,7 @@ function! nvimdev#init(path) abort
     let &cscopeprg = s:cscope_exe
     let cscope_db = printf('%s/cscope.out', s:path)
     if filereadable(cscope_db)
-      execute 'cscope add' cscope_db
+      execute 'silent cscope add' cscope_db
     endif
   endif
 
@@ -323,7 +323,7 @@ function! s:build_db_job(job, data, event) dict abort
     elseif self.db == 'cscope'
       let cscope_db = printf('%s/cscope.out', s:path)
       if filereadable(cscope_db)
-        execute 'cscope add' cscope_db
+        execute 'silent cscope add' cscope_db
       endif
     endif
   endif
