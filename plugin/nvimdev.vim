@@ -15,8 +15,10 @@ function! s:check_nvim() abort
   let last_path = expand('%')
   let path = fnamemodify(last_path, ':h')
 
+  let found = ''
   while path != last_path
     if filereadable(path . file_hint)
+      let found = path
       break
     endif
 
@@ -27,9 +29,8 @@ function! s:check_nvim() abort
     endif
   endwhile
 
-  let found = path . file_hint
-  if filereadable(found)
-    call nvimdev#init(fnamemodify(found, ':p:h:h'))
+  if !empty(found)
+    call nvimdev#init(found)
   endif
 endfunction
 
