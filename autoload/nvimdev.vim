@@ -70,7 +70,7 @@ function! nvimdev#init(path) abort
         \ 'remove_invalid_entries': get(g:, 'neomake_remove_invalid_entries', 0),
         \ }
 
-  function linter.fn(jobinfo) abort
+  function linter.InitForJob(jobinfo) abort
     let bufname = substitute(expand('%:p'), s:path . "/" , "", "")
     let errorfile = printf('%s/%s.json', s:errors_root, bufname)
     let maker = copy(self)
