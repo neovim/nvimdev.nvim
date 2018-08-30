@@ -85,11 +85,6 @@ uses the `tags` file to build a cross refrence database.
 
 Adds nvim linter to `g:neomake_c_enabled_makers`.
 
-#### `g:nvimdev_autorun_neomake` (default `0`)
-
-Automatically run `:Neomake` after writing buffers.  Disabled
-by default since cool people would have this already setup.
-
 #### `g:nvimdev_build_readonly` (default `1`)
 
 Set files loaded from `build/` or `.deps/` as readonly.
