@@ -149,14 +149,15 @@ endfunction
 
 
 function! nvimdev#update_clint_errors() abort
-  if !executable('python3')
+  let interpreter=get(g:,'python3_host_prog','python3')
+  if !executable(interpreter)
     echohl WarningMsg
     echo '[nvimdev] Python 3 is required to download lint errors'
     echohl None
     return
   endif
 
-  let cmd = ['python3',
+  let cmd = [interpreter,
         \ s:plugin . '/scripts/download_errors.py',
         \ s:errors_root]
   let opts = {
