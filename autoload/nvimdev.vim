@@ -51,8 +51,7 @@ function! nvimdev#init(path) abort
         \ 'errorformat': s:tmp_efm,
         \ 'remove_invalid_entries': get(g:, 'neomake_remove_invalid_entries', 0)
         \ }
-
-  set errorformat=l:efm_backup
+  let &errorformat=efm_backup
 
   function g:neomake_make_maker.postprocess(entry) abort
     if (a:entry.type ==? 'n')
