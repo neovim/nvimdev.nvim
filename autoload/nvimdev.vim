@@ -20,6 +20,7 @@ function! nvimdev#init(path) abort
   endif
 
   let g:nvimdev_loaded = 2
+  let g:nvimdev_root = a:path
   let s:path = a:path
   let s:errors_root = s:path . '/tmp/errors'
 
