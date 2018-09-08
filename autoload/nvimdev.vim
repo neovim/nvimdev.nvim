@@ -53,7 +53,7 @@ function! nvimdev#init(path) abort
         \ }
   let &errorformat=efm_backup
 
-  function g:neomake_make_maker.postprocess(entry) abort
+  function! g:neomake_make_maker.postprocess(entry) abort
     if (a:entry.type ==? 'n')
       let a:entry.type = 'I'
     endif
@@ -69,8 +69,8 @@ function! nvimdev#init(path) abort
         \ 'remove_invalid_entries': get(g:, 'neomake_remove_invalid_entries', 0),
         \ }
 
-  function linter.InitForJob(jobinfo) abort
-    let bufname = substitute(expand('%:p'), s:path . "/" , "", "")
+  function! linter.InitForJob(jobinfo) abort
+    let bufname = substitute(expand('%:p'), s:path . '/' , '', '')
     let errorfile = printf('%s/%s.json', s:errors_root, bufname)
     let maker = copy(self)
     let maker.args = []
@@ -82,7 +82,7 @@ function! nvimdev#init(path) abort
     return maker
   endfunction
 
-  function linter.postprocess(entry) abort
+  function! linter.postprocess(entry) abort
     if a:entry.text =~# '\[\d]$'
       let a:entry.text = substitute(a:entry.text, '^\s*', '', '')
       let level = str2nr(matchstr(a:entry.text, '\d\ze]$'))
@@ -196,7 +196,7 @@ function! s:cscope_lookup(type, name) abort
       if !entry.bufnr
         continue
       endif
-      let key = printf("%s:%d", bufname(entry.bufnr), entry.lnum)
+      let key = printf('%s:%d', bufname(entry.bufnr), entry.lnum)
       if index(seen, key) == -1
         call add(final_qflist, entry)
       endif
@@ -237,7 +237,7 @@ endfunction
 
 
 function! s:errors_download_job(job, data, event) dict abort
-  if a:event == 'exit'
+  if a:event ==# 'exit'
     if a:data == 0
       echo '[nvimdev] clint: Updated ignored lint errors'
     elseif a:data != 200
@@ -311,13 +311,13 @@ endfunction
 function! s:build_db_job(job, data, event) dict abort
   " XXX: Log stdout/stderr on error without being obtrustive and without
   " overwriting neomake results?
-  if a:event == 'exit'
+  if a:event ==# 'exit'
     unlet! s:{self.db . '_job'}
     if a:data != 0
       echohl ErrorMsg
       echo '[nvimdev]' self.db 'failed'
       echohl None
-    elseif self.db == 'cscope'
+    elseif self.db ==# 'cscope'
       let cscope_db = printf('%s/cscope.out', s:path)
       if filereadable(cscope_db)
         execute 'cscope add' cscope_db
