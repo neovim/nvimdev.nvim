@@ -13,7 +13,7 @@ function! s:check_nvim() abort
   " It's a pretty unique filename and it sounds cool, like 'shadow cat'.
   let file_hint = '/scripts/shadacat.py'
   let last_path = expand('%')
-  let path = fnamemodify(last_path, ':h')
+  let path = fnamemodify(last_path, ':p:h')
 
   let found = ''
   while path != last_path
