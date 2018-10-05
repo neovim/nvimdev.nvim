@@ -68,6 +68,7 @@ function! nvimdev#init(path) abort
         \ 'cwd': s:path,
         \ 'errorformat': '%-GTotal errors%.%#,%f:%l: %m',
         \ 'remove_invalid_entries': get(g:, 'neomake_remove_invalid_entries', 0),
+        \ 'output_stream': 'stdout',
         \ }
 
   function! linter.InitForJob(jobinfo) abort
