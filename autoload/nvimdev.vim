@@ -63,8 +63,8 @@ function! nvimdev#init(path) abort
   let linter = {
         \ 'name': 'nvimdev-clint',
         \ 'short_name': 'lint',
-        \ 'exe': get(g:, 'python3_host_prog', 'python'), 
-        \ 'append_file': 0,
+        \ 'exe': get(g:, 'python3_host_prog', 'python'),
+        \ 'args': [s:path.'/src/clint.py'],
         \ 'cwd': s:path,
         \ 'errorformat': '%-GTotal errors%.%#,%f:%l: %m',
         \ 'remove_invalid_entries': get(g:, 'neomake_remove_invalid_entries', 0),
@@ -75,13 +75,16 @@ function! nvimdev#init(path) abort
     let bufname = substitute(expand('%:p'), s:path . '/' , '', '')
     let errorfile = printf('%s/%s.json', s:errors_root, bufname)
     let maker = copy(self)
-    let maker.args = [s:path.'/src/clint.py']
     if filereadable(errorfile)
-      let maker.args += ['--suppress-errors='.errorfile, bufname]
-    else
-      let maker.args += [bufname]
+      let maker.args += ['--suppress-errors='.errorfile]
     endif
     return maker
+  endfunction
+
+  function! linter.supports_stdin(jobinfo) abort
+    let bufname = substitute(expand('%:p'), s:path . '/' , '', '')
+    let self.args += ['--stdin-filename', bufname]
+    return 1
   endfunction
 
   function! linter.postprocess(entry) abort
