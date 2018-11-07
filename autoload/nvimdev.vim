@@ -63,7 +63,7 @@ function! nvimdev#init(path) abort
   let linter = {
         \ 'name': 'nvimdev-clint',
         \ 'short_name': 'lint',
-        \ 'exe': s:path.'/src/clint.py',
+        \ 'exe': get(g:, 'python3_host_prog', 'python'), 
         \ 'append_file': 0,
         \ 'cwd': s:path,
         \ 'errorformat': '%-GTotal errors%.%#,%f:%l: %m',
@@ -75,7 +75,7 @@ function! nvimdev#init(path) abort
     let bufname = substitute(expand('%:p'), s:path . '/' , '', '')
     let errorfile = printf('%s/%s.json', s:errors_root, bufname)
     let maker = copy(self)
-    let maker.args = []
+    let maker.args = [s:path.'/src/clint.py']
     if filereadable(errorfile)
       let maker.args += ['--suppress-errors='.errorfile, bufname]
     else
