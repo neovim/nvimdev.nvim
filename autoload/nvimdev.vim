@@ -140,7 +140,7 @@ function! nvimdev#init(path) abort
   augroup nvimdev
     autocmd!
     autocmd BufRead,BufNewFile *.h set filetype=c
-    if get(g:, 'nvimdev_auto_ctags', 1) || get(g:, 'nvimdev_auto_cscope', 0)
+    if get(g:, 'nvimdev_auto_ctags', 0) || get(g:, 'nvimdev_auto_cscope', 0)
       autocmd BufWritePost *.c,*.h,*.lua call s:build_db()
     endif
     if get(g:, 'nvimdev_build_readonly', 1)

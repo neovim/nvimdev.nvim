@@ -49,7 +49,7 @@ It should always be set to the actual Neovim root.
 
 Automatically `:cd` to the Neovim root after init.
 
-#### `g:nvimdev_auto_ctags` (default `1`)
+#### `g:nvimdev_auto_ctags` (default `0`)
 
 Automatically generate tags.
 
