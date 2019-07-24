@@ -108,23 +108,12 @@ function! nvimdev#init(path) abort
   endif
   let g:neomake_c_enabled_makers = c_makers
 
-  let linter = neomake#makers#ft#lua#luacheck()
-  call extend(linter, {
-        \ 'exe': s:path . '/.deps/usr/bin/luacheck',
-        \ 'cwd': s:path . '/test',
-        \ 'remove_invalid_entries': 1,
-        \ })
-  let g:neomake_lua_nvimluacheck_maker = linter
-
-  let lua_makers = get(g:, 'neomake_lua_enabled_makers', [])
-  if !empty(lua_makers)
-    let i = index(lua_makers, 'luacheck')
-    if i >= 0
-      call remove(lua_makers, i)
-    endif
+  " Use luacheck from .deps if not available/configured otherwise.
+  if !exists('g:neomake_lua_luacheck_exe')
+        \ && !executable('luacheck')
+        \ && filereadable(s:path.'/.deps/usr/bin/luacheck')
+    let g:neomake_lua_luacheck_exe = s:path.'/.deps/usr/bin/luacheck'
   endif
-  call add(lua_makers, 'nvimluacheck')
-  let g:neomake_lua_enabled_makers = lua_makers
 
   let s:cscope_exe = get(g:, 'nvimdev_cscope_exe', 'cscope')
   let s:ctags_exe = get(g:, 'nvimdev_ctags_exe', 'ctags')

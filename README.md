@@ -10,7 +10,8 @@ Provides some nicities for hacking on [Neovim][]:
 - Relatively fast linting for C sources (clint.py).
   - Ignored errors list is kept up to date.
   - Gutter signs reflect importance of warnings.
-- Linting for Lua using `luacheck` from the `.deps` directory.
+- Configures Neomake's luacheck maker to use the version from the `.deps`
+  directory, if it is not available otherwise.
 - Filetype settings appropriate for Neovim's source code.
 
 
