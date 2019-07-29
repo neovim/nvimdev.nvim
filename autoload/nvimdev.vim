@@ -29,7 +29,6 @@ function! nvimdev#init(path) abort
   endif
 
   let c_makers = []
-  let s:ctags_file = s:path . '/tmp/tags'
 
   for inc in s:include_paths
     let &path.=','.s:path.'/'.inc
