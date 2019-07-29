@@ -9,16 +9,6 @@ let s:include_paths = [
 
 
 function! nvimdev#init(path) abort
-  if !exists('g:loaded_neomake')
-    if s:neomake_warn
-      echohl WarningMsg
-      echomsg '[nvimdev] Neomake is not installed'
-      echohl None
-      let s:neomake_warn = 0
-    endif
-    return
-  endif
-
   let g:nvimdev_loaded = 2
   let g:nvimdev_root = a:path
   let s:path = a:path
@@ -28,12 +18,47 @@ function! nvimdev#init(path) abort
     execute 'cd' s:path
   endif
 
-  let c_makers = []
-
   for inc in s:include_paths
     let &path.=','.s:path.'/'.inc
   endfor
 
+  if get(g:, 'loaded_neomake', 0)
+    call s:setup_neomake()
+  elseif s:neomake_warn
+    echohl WarningMsg
+    echomsg '[nvimdev] Neomake is not installed'
+    echohl None
+    let s:neomake_warn = 0
+  endif
+
+  let s:cscope_exe = get(g:, 'nvimdev_cscope_exe', 'cscope')
+  let s:ctags_exe = get(g:, 'nvimdev_ctags_exe', 'ctags')
+
+  if get(g:, 'nvimdev_auto_cscope', 0) && executable(s:cscope_exe)
+    let &cscopeprg = s:cscope_exe
+    let cscope_db = printf('%s/cscope.out', s:path)
+    if filereadable(cscope_db)
+      execute 'cscope add' cscope_db
+    endif
+  endif
+
+  augroup nvimdev
+    autocmd!
+    autocmd BufRead,BufNewFile *.h set filetype=c
+    if get(g:, 'nvimdev_auto_ctags', 0) || get(g:, 'nvimdev_auto_cscope', 0)
+      autocmd BufWritePost *.c,*.h,*.lua call s:build_db()
+    endif
+    if get(g:, 'nvimdev_build_readonly', 1)
+      execute 'autocmd BufRead ' . s:path . '/build/* setlocal readonly nomodifiable'
+      execute 'autocmd BufRead ' . s:path . '/.deps/* setlocal readonly nomodifiable'
+    endif
+  augroup END
+
+  call nvimdev#update_clint_errors()
+endfunction
+
+function! s:setup_neomake() abort
+  let c_makers = []
   if exists('#clang2') && index(c_makers, 'clang') == -1
     " deoplete-clang2 (electric boogaloo) automatically sets compile flags.
     call add(c_makers, 'clang')
@@ -113,31 +138,6 @@ function! nvimdev#init(path) abort
         \ && filereadable(s:path.'/.deps/usr/bin/luacheck')
     let g:neomake_lua_luacheck_exe = s:path.'/.deps/usr/bin/luacheck'
   endif
-
-  let s:cscope_exe = get(g:, 'nvimdev_cscope_exe', 'cscope')
-  let s:ctags_exe = get(g:, 'nvimdev_ctags_exe', 'ctags')
-
-  if get(g:, 'nvimdev_auto_cscope', 0) && executable(s:cscope_exe)
-    let &cscopeprg = s:cscope_exe
-    let cscope_db = printf('%s/cscope.out', s:path)
-    if filereadable(cscope_db)
-      execute 'cscope add' cscope_db
-    endif
-  endif
-
-  augroup nvimdev
-    autocmd!
-    autocmd BufRead,BufNewFile *.h set filetype=c
-    if get(g:, 'nvimdev_auto_ctags', 0) || get(g:, 'nvimdev_auto_cscope', 0)
-      autocmd BufWritePost *.c,*.h,*.lua call s:build_db()
-    endif
-    if get(g:, 'nvimdev_build_readonly', 1)
-      execute 'autocmd BufRead ' . s:path . '/build/* setlocal readonly nomodifiable'
-      execute 'autocmd BufRead ' . s:path . '/.deps/* setlocal readonly nomodifiable'
-    endif
-  augroup END
-
-  call nvimdev#update_clint_errors()
 endfunction
 
 
