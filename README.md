@@ -13,6 +13,8 @@ Provides some nicities for hacking on [Neovim][]:
 - Configures Neomake's luacheck maker to use the version from the `.deps`
   directory, if it is not available otherwise.
 - Filetype settings appropriate for Neovim's source code.
+- Hook into [vim-projectionist]: configure alternate files for the ".vim-src"
+  directory, and a command to diff against the same file in Vim.
 
 
 ## Why?
@@ -116,3 +118,4 @@ Set files loaded from `build/` or `.deps/` as readonly.
 [helpful.vim]: https://github.com/tweekmonster/helpful.vim
 [dyslexic.vim]: https://github.com/tweekmonster/dyslexic.vim
 [gist]: https://gist.github.com/tweekmonster/8f9cfb36a56d7d1bb6a73e0f9589d81f
+[vim-projectionist]: https://github.com/tpope/vim-projectionist
