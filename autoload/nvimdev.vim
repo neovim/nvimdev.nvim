@@ -8,6 +8,13 @@ let s:include_paths = [
       \ ]
 
 
+function! s:set_readonly() abort
+  if !exists('b:_nvimdev_set_readonly')
+    let b:_nvimdev_set_readonly = 1
+    setlocal readonly nomodifiable
+  endif
+endfunction
+
 function! nvimdev#init(path) abort
   let g:nvimdev_loaded = 2
   let g:nvimdev_root = a:path
@@ -49,10 +56,14 @@ function! nvimdev#init(path) abort
       autocmd BufWritePost *.c,*.h,*.lua call s:build_db()
     endif
     if get(g:, 'nvimdev_build_readonly', 1)
-      execute 'autocmd BufRead ' . s:path . '/build/* setlocal readonly nomodifiable'
-      execute 'autocmd BufRead ' . s:path . '/.deps/* setlocal readonly nomodifiable'
+      execute 'autocmd BufEnter '.fnameescape(s:path).'/{build,.deps}/* call s:set_readonly()'
     endif
   augroup END
+
+  " Init for first buffer, since this is called on BufEnter itself.
+  if exists('#nvimdev#BufEnter')
+    doautocmd nvimdev BufEnter
+  endif
 
   call nvimdev#update_clint_errors()
 endfunction
