@@ -50,20 +50,20 @@ function! nvimdev#init(path) abort
     endif
     if get(g:, 'nvimdev_build_readonly', 1)
       if has('nvim-0.4.0')
-        execute 'autocmd BufEnter '.fnameescape(s:path).'/{build,.deps}/* '
+        execute 'autocmd BufRead '.fnameescape(s:path).'/{build,.deps}/* '
               \ .'au CursorMoved <buffer> ++once setlocal readonly nomodifiable'
       else
-        execute 'autocmd BufEnter '.fnameescape(s:path).'/{build,.deps}/* '
+        execute 'autocmd BufRead '.fnameescape(s:path).'/{build,.deps}/* '
               \ .'setlocal readonly nomodifiable'
       endif
     endif
 
     " Dummy event to avoid "No matching autocommands" below.
-    autocmd BufEnter <buffer> au! nvimdev BufEnter <buffer>
+    autocmd BufRead <buffer> au! nvimdev BufRead <buffer>
   augroup END
 
   " Init for first buffer, since this is called on BufEnter itself.
-  doautocmd nvimdev BufEnter
+  doautocmd nvimdev BufRead
 
   call nvimdev#update_clint_errors()
 endfunction
