@@ -42,8 +42,6 @@ function! nvimdev#init(path) abort
     endif
   endif
 
-  let do_bufenter = 0
-
   augroup nvimdev
     autocmd!
     autocmd BufRead,BufNewFile *.h set filetype=c
@@ -51,20 +49,21 @@ function! nvimdev#init(path) abort
       autocmd BufWritePost *.c,*.h,*.lua call s:build_db()
     endif
     if get(g:, 'nvimdev_build_readonly', 1)
-      let glob = fnameescape(s:path).'/{build,.deps}/*'
-      execute 'autocmd BufEnter '.glob.' '
-            \ .(has('nvim-0.4.0') ? '++once ' : '')
-            \ .'setlocal readonly nomodifiable'
-      if expand('%:p') =~# glob2regpat(glob)
-        let do_bufenter = 1
+      if has('nvim-0.4.0')
+        execute 'autocmd BufEnter '.fnameescape(s:path).'/{build,.deps}/* '
+              \ .'au CursorMoved <buffer> ++once setlocal readonly nomodifiable'
+      else
+        execute 'autocmd BufEnter '.fnameescape(s:path).'/{build,.deps}/* '
+              \ .'setlocal readonly nomodifiable'
       endif
     endif
+
+    " Dummy event to avoid "No matching autocommands" below.
+    autocmd BufEnter <buffer> au! nvimdev BufEnter <buffer>
   augroup END
 
   " Init for first buffer, since this is called on BufEnter itself.
-  if do_bufenter
-    doautocmd nvimdev BufEnter
-  endif
+  doautocmd nvimdev BufEnter
 
   call nvimdev#update_clint_errors()
 endfunction
