@@ -32,7 +32,14 @@ function! nvimdev#setup_projectionist(bufpath) abort
 endfunction
 
 function! nvimdev#diff() abort
-  exe 'diffsplit' projectionist#query_file('alternate')[0]
+  let alternate = projectionist#query_file('alternate')
+  if empty(alternate)
+    echohl WarningMsg
+    echomsg '[nvimdev] no alternate file'
+    echohl None
+    return
+  endif
+  exe 'diffsplit' alternate[0]
 endfunction
 
 function! nvimdev#init(path) abort
