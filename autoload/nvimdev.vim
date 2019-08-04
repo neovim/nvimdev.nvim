@@ -18,8 +18,14 @@ function! nvimdev#setup_projectionist(bufpath) abort
           \ 'src/nvim/*': {
           \   'alternate': vim_src.'/src/{}',
           \ },
+          \ '*': {
+          \   'alternate': vim_src.'/{}',
+          \ },
           \ vim_src.'/src/*': {
           \   'alternate': 'src/nvim/{}',
+          \ },
+          \ vim_src.'/*': {
+          \   'alternate': '{}',
           \ },
           \ })
   endif
