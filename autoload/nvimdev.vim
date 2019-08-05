@@ -49,10 +49,24 @@ function! nvimdev#init(path) abort
       autocmd BufWritePost *.c,*.h,*.lua call s:build_db()
     endif
     if get(g:, 'nvimdev_build_readonly', 1)
-      execute 'autocmd BufRead ' . s:path . '/build/* setlocal readonly nomodifiable'
-      execute 'autocmd BufRead ' . s:path . '/.deps/* setlocal readonly nomodifiable'
+      if has('nvim-0.4.0')
+        execute 'autocmd BufRead '.fnameescape(s:path).'/{build,.deps}/* '
+              \ .'au CursorMoved <buffer> ++once setlocal readonly nomodifiable'
+      else
+        execute 'autocmd BufRead '.fnameescape(s:path).'/{build,.deps}/* '
+              \ .'setlocal readonly nomodifiable'
+      endif
+    endif
+
+    if !has('nvim-0.4.0')
+      " Dummy event to avoid "No matching autocommands" below.
+      " Not required with neovim/neovim@45c34bd.
+      autocmd BufRead <buffer> au! nvimdev BufRead <buffer>
     endif
   augroup END
+
+  " Init for first buffer, since this is called on BufEnter itself.
+  doautocmd nvimdev BufRead
 
   call nvimdev#update_clint_errors()
 endfunction
