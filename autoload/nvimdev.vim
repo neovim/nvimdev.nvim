@@ -58,8 +58,11 @@ function! nvimdev#init(path) abort
       endif
     endif
 
-    " Dummy event to avoid "No matching autocommands" below.
-    autocmd BufRead <buffer> au! nvimdev BufRead <buffer>
+    if !has('nvim-0.4.0')
+      " Dummy event to avoid "No matching autocommands" below.
+      " Not required with neovim/neovim@45c34bd.
+      autocmd BufRead <buffer> au! nvimdev BufRead <buffer>
+    endif
   augroup END
 
   " Init for first buffer, since this is called on BufEnter itself.
