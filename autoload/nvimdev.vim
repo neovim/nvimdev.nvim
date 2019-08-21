@@ -7,6 +7,40 @@ let s:include_paths = [
       \ 'build/include',
       \ ]
 
+function! nvimdev#setup_projectionist(bufpath) abort
+  if exists('g:nvimdev_root') && stridx(a:bufpath, g:nvimdev_root) == 0
+    " Support $VIM_SOURCE_DIR (used with Neovim's scripts/vim-patch.sh).
+    let vim_src = $VIM_SOURCE_DIR
+    if empty(vim_src)
+      let vim_src = '.vim-src'
+    endif
+    call projectionist#append(g:nvimdev_root, {
+          \ 'src/nvim/*': {
+          \   'alternate': vim_src.'/src/{}',
+          \ },
+          \ '*': {
+          \   'alternate': vim_src.'/{}',
+          \ },
+          \ vim_src.'/src/*': {
+          \   'alternate': 'src/nvim/{}',
+          \ },
+          \ vim_src.'/*': {
+          \   'alternate': '{}',
+          \ },
+          \ })
+  endif
+endfunction
+
+function! nvimdev#diff() abort
+  let alternate = projectionist#query_file('alternate')
+  if empty(alternate)
+    echohl WarningMsg
+    echomsg '[nvimdev] no alternate file'
+    echohl None
+    return
+  endif
+  exe 'diffsplit' alternate[0]
+endfunction
 
 function! nvimdev#init(path) abort
   let g:nvimdev_loaded = 2
@@ -62,6 +96,16 @@ function! nvimdev#init(path) abort
       " Dummy event to avoid "No matching autocommands" below.
       " Not required with neovim/neovim@45c34bd.
       autocmd BufRead <buffer> au! nvimdev BufRead <buffer>
+    endif
+
+    " Setup/configure projectionist.
+    if get(g:, 'loaded_projectionist', 0)
+      autocmd User ProjectionistDetect call nvimdev#setup_projectionist(g:projectionist_file)
+
+      " Init for first buffer, since this is called on BufEnter itself.
+      call ProjectionistDetect(expand('%:p'))
+
+      command! NvimDiff call nvimdev#diff()
     endif
   augroup END
 
