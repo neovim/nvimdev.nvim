@@ -158,7 +158,7 @@ function! s:setup_neomake() abort
     let errorfile = printf('%s/%s.json', s:errors_root, bufname)
     let maker = copy(self)
     if filereadable(errorfile)
-      let maker.args += ['--suppress-errors='.errorfile]
+      let maker.args = self.args + ['--suppress-errors='.errorfile]
     endif
     return maker
   endfunction
