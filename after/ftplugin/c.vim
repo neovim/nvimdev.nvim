@@ -7,7 +7,6 @@ setlocal shiftwidth=2
 setlocal softtabstop=2
 setlocal textwidth=80
 setlocal comments=:///,://
-setlocal modelines=0
 setlocal cinoptions=0(
 setlocal commentstring=//\ %s
 
