@@ -79,6 +79,7 @@ function! nvimdev#init(path) abort
   augroup nvimdev
     autocmd!
     autocmd BufRead,BufNewFile *.h set filetype=c
+    autocmd FileType c call s:nvimdev_setup_ft()
     if get(g:, 'nvimdev_auto_ctags', 0) || get(g:, 'nvimdev_auto_cscope', 0)
       autocmd BufWritePost *.c,*.h,*.lua call s:build_db()
     endif
@@ -111,8 +112,29 @@ function! nvimdev#init(path) abort
 
   " Init for first buffer, since this is called on BufEnter itself.
   doautocmd nvimdev BufRead
+  if &filetype ==# 'c'
+    call s:nvimdev_setup_ft()
+  endif
 
   call nvimdev#update_clint_errors()
+endfunction
+
+function! s:nvimdev_setup_ft() abort
+  if stridx(expand('<afile>:p'), s:path) != 0
+    return
+  endif
+  setlocal expandtab
+  setlocal shiftwidth=2
+  setlocal softtabstop=2
+  setlocal textwidth=80
+  setlocal comments=:///,://
+  setlocal cinoptions=0(
+  setlocal commentstring=//\ %s
+
+  if get(g:, 'nvimdev_auto_cscope', 0)
+    command! -buffer -nargs=? Callers call nvimdev#cscope_lookup_callers(<q-args>)
+    command! -buffer -nargs=? Callees call nvimdev#cscope_lookup_callees(<q-args>)
+  endif
 endfunction
 
 function! s:setup_neomake() abort
