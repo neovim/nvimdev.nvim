@@ -86,10 +86,10 @@ function! nvimdev#init(path) abort
     if get(g:, 'nvimdev_build_readonly', 1)
       if has('nvim-0.4.0')
         execute 'autocmd BufRead '.fnameescape(s:path).'/{build,.deps}/* '
-              \ .'au CursorMoved <buffer> ++once setlocal readonly nomodifiable'
+              \ .'au CursorMoved <buffer> ++once setlocal readonly'
       else
         execute 'autocmd BufRead '.fnameescape(s:path).'/{build,.deps}/* '
-              \ .'setlocal readonly nomodifiable'
+              \ .'setlocal readonly'
       endif
     endif
 
