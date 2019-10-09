@@ -116,7 +116,7 @@ function! nvimdev#init(path) abort
     call s:nvimdev_setup_ft()
   endif
 
-  call nvimdev#update_clint_errors()
+  command! NvimUpdateClintErrors call nvimdev#update_clint_errors()
 endfunction
 
 function! s:nvimdev_setup_ft() abort
@@ -136,6 +136,8 @@ function! s:nvimdev_setup_ft() abort
     command! -buffer -nargs=? Callees call nvimdev#cscope_lookup_callees(<q-args>)
   endif
 endfunction
+
+let s:warned_about_missing_error_files = 0
 
 function! s:setup_neomake() abort
   let c_makers = []
@@ -181,6 +183,9 @@ function! s:setup_neomake() abort
     let maker = copy(self)
     if filereadable(errorfile)
       let maker.args = self.args + ['--suppress-errors='.errorfile]
+    elseif !s:warned_about_missing_error_files && !filereadable(s:errors_root)
+      echom '[nvimdev] clint: no suppress-errors file found.  Use :NvimUpdateClintErrors.'
+      let s:warned_about_missing_error_files = 1
     endif
     return maker
   endfunction
@@ -313,9 +318,12 @@ function! s:errors_download_job(job, data, event) dict abort
   if a:event ==# 'exit'
     if a:data == 0
       echo '[nvimdev] clint: Updated ignored lint errors'
-    elseif a:data != 200
+    elseif a:data == 200
+      echo '[nvimdev] clint: files are up-to-date'
+    elseif !exists('v:exiting') || v:exiting is v:null
+      " Only display error when not exiting (might be 143 (SIGTERM) then).
       echohl WarningMsg
-      echo '[nvimdev] clint: Failed to update ignored lint errors'
+      echo printf('[nvimdev] clint: Failed to update ignored lint errors (%d)', a:data)
       echohl None
     endif
   endif
