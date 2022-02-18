@@ -15,6 +15,7 @@ Provides some nicities for hacking on [Neovim][]:
 - Filetype settings appropriate for Neovim's source code.
 - Hook into [vim-projectionist]: configure alternate files for the ".vim-src"
   directory, and a command to diff against the same file in Vim.
+- Add commands `NvimTestRun` and `NvimTestClear` for running functional tests directly in the buffer.
 
 
 ## Why?
@@ -32,6 +33,7 @@ it, so it's now a plugin that will make maintenance easier.
 
 - [Neomake][]
 - Python 3
+- [plenary.nvim][]
 
 ## Config
 
@@ -92,6 +94,11 @@ Adds nvim linter to `g:neomake_c_enabled_makers`.
 
 Set files loaded from `build/` or `.deps/` as readonly.
 
+## Commands
+
+`NvimTestRun [all]`: Run the test in the buffer the cursor is inside. Works for `it` and `describe` blocks.
+
+`NvimTestClear`: Clear test result decorations in buffer
 
 ## Useful plugins
 
@@ -119,3 +126,4 @@ Set files loaded from `build/` or `.deps/` as readonly.
 [dyslexic.vim]: https://github.com/tweekmonster/dyslexic.vim
 [gist]: https://gist.github.com/tweekmonster/8f9cfb36a56d7d1bb6a73e0f9589d81f
 [vim-projectionist]: https://github.com/tpope/vim-projectionist
+[plenary.nvim]: https://github.com/nvim-lua/plenary.nvim
