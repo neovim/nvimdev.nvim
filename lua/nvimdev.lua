@@ -79,33 +79,37 @@ local function create_virt_lines(lines)
   return virt_lines
 end
 
-local function apply_pending_decor(bufnr, lnum)
-  api.nvim_buf_set_extmark(bufnr, ns, lnum-1, -1, {
-    id = lnum,
-    virt_text = {{'RUNNING...', 'WarningMsg' }},
-    virt_lines_above = true
-  })
-end
+local function set_diagnostics(bufnr, diags)
+  local diags0 = {}
 
-local function apply_result_decor(bufnr, lnum, code, stdout)
-  local virt_text, virt_lines
+  for lnum, diag in pairs(diags) do
+    diag.lnum = lnum - 1
+    diags0[#diags0+1] = diag
 
-  if code > 0 then
-    virt_text = {'FAILED', 'ErrorMsg' }
-
-    local stdout_lines = vim.split(stdout, '\n')
-    local lines = filter_test_output(stdout_lines)
-    virt_lines = create_virt_lines(lines)
-  else
-    virt_text = {'PASSED', 'MoreMsg' }
+    if diag.virt_lines then
+      api.nvim_buf_set_extmark(bufnr, ns, lnum-1, -1, {
+        id = lnum,
+        virt_lines = diag.virt_lines,
+        virt_lines_above = true
+      })
+    end
   end
 
-  api.nvim_buf_set_extmark(bufnr, ns, lnum-1, -1, {
-    id = lnum,
-    virt_text = {virt_text},
-    virt_lines = virt_lines,
-    virt_lines_above = true
-  })
+  vim.diagnostic.set(ns, bufnr, diags0)
+end
+
+local function process_result(diag, code, stdout)
+  if code > 0 then
+    local stdout_lines = vim.split(stdout, '\n')
+    local lines = filter_test_output(stdout_lines)
+    diag.virt_lines = create_virt_lines(lines)
+    diag.severity = vim.diagnostic.severity.ERROR
+    diag.message = 'FAIL: '..diag.test
+  else
+    diag.severity = vim.diagnostic.severity.HINT
+    diag.message = 'PASS: '..diag.test
+  end
+  return diag
 end
 
 local function notify_err(msg)
@@ -151,6 +155,15 @@ local run_target = async.wrap(function(cwd, path, test, callback)
   end)
 end, 4)
 
+local function running_diag(test)
+  return {
+    col = -1,
+    test = test,
+    message = 'RUN: '..test,
+    severity = vim.diagnostic.severity.WARN
+  }
+end
+
 M.run_test = async.void(function(props)
   local all = props.args == 'all'
 
@@ -170,16 +183,23 @@ M.run_test = async.void(function(props)
   local cwd = name:match('^(.*)/test/functional/.*$')
   local cbuf = api.nvim_get_current_buf()
 
+  vim.api.nvim_buf_clear_namespace(cbuf, ns, 0, -1)
+
+  local diags = {}
   for i = #targets, 1, -1 do
-    local _, test_lnum = unpack(targets[i])
-    apply_pending_decor(cbuf, test_lnum)
+    local test, test_lnum = unpack(targets[i])
+    diags[test_lnum] = running_diag(test)
   end
+
+  set_diagnostics(cbuf, diags)
 
   for i = #targets, 1, -1 do
     local test, test_lnum = unpack(targets[i])
     local code, stdout = run_target(cwd, name, test)
     scheduler()
-    apply_result_decor(cbuf, test_lnum, code, stdout)
+    local diag = diags[test_lnum]
+    diag = process_result(diag, code, stdout)
+    set_diagnostics(cbuf, diags)
   end
 end)
 
