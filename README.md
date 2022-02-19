@@ -102,28 +102,23 @@ Set files loaded from `build/` or `.deps/` as readonly.
 
 ## Useful plugins
 
-- [deoplete.nvim][]: Completions!
-- [deoplete-clang2][]: (Electric Boogaloo) C Completions!  No configuration
-  needed with Neovim's source.
-- [wstrip.vim][]: Strip trailing whitespace on save, but only on lines you've
-  changed.
-- [helpful.vim][]: Displays version information for helptags.
-- [dyslexic.vim][]: Mistyping variables in giant source files suck.
-
-## TODO
-
-- Command to run tests
-
+- [nvim-cmp][]: Completions!
+- [cmp-nvim-lsp][]: LSP completion source!
+- [nvim-lspconfig][]: LSP configuration for [clangd][] and [sumneko-lua-lsp][].
+- [nvim-treesitter][]: Better syntax highlighting for C and Lua files.
+- [lua-dev.nvim][]: Neovim Lua development.
 
 [Neovim]: https://github.com/neovim/neovim
 [Neomake]: https://github.com/neomake/neomake
 [universal-ctags]: https://github.com/universal-ctags/ctags
 [cscope]: http://cscope.sourceforge.net/
-[deoplete.nvim]: https://github.com/Shougo/deoplete.nvim
-[deoplete-clang2]: https://github.com/tweekmonster/deoplete-clang2
-[wstrip.vim]: https://github.com/tweekmonster/wstrip.vim
-[helpful.vim]: https://github.com/tweekmonster/helpful.vim
-[dyslexic.vim]: https://github.com/tweekmonster/dyslexic.vim
+[nvim-treesitter]: https://github.com/nvim-treesitter/nvim-treesitter
+[nvim-cmp]: https://github.com/hrsh7th/nvim-cmp
+[cmp-nvim-lsp]: hrsh7th/cmp-nvim-lsp
+[nvim-lspconfig]: https://github.com/neovim/nvim-lspconfig
+[sumneko-lua-lsp]: https://github.com/sumneko/lua-language-server
+[clangd]: https://clangd.llvm.org
 [gist]: https://gist.github.com/tweekmonster/8f9cfb36a56d7d1bb6a73e0f9589d81f
 [vim-projectionist]: https://github.com/tpope/vim-projectionist
 [plenary.nvim]: https://github.com/nvim-lua/plenary.nvim
+[lua-dev.nvim]: https://github.com/folke/lua-dev.nvim
