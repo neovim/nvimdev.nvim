@@ -166,55 +166,6 @@ function! s:setup_neomake() abort
     endif
   endfunction
 
-  let linter = {
-        \ 'name': 'nvimdev-clint',
-        \ 'short_name': 'lint',
-        \ 'exe': get(g:, 'python3_host_prog', 'python'),
-        \ 'args': [s:path.'/src/clint.py'],
-        \ 'cwd': s:path,
-        \ 'errorformat': '%-GTotal errors%.%#,%f:%l: %m',
-        \ 'remove_invalid_entries': get(g:, 'neomake_remove_invalid_entries', 0),
-        \ 'output_stream': 'stdout',
-        \ }
-
-  function! linter.InitForJob(jobinfo) abort
-    let bufname = substitute(expand('%:p'), s:path . '/' , '', '')
-    let errorfile = printf('%s/%s.json', s:errors_root, bufname)
-    let maker = copy(self)
-    if filereadable(errorfile)
-      let maker.args = self.args + ['--suppress-errors='.errorfile]
-    elseif !s:warned_about_missing_error_files && !filereadable(s:errors_root)
-      echom '[nvimdev] clint: no suppress-errors file found.  Use :NvimUpdateClintErrors.'
-      let s:warned_about_missing_error_files = 1
-    endif
-    return maker
-  endfunction
-
-  function! linter.supports_stdin(jobinfo) abort
-    let bufname = substitute(expand('%:p'), s:path . '/' , '', '')
-    let self.args += ['--stdin-filename', bufname]
-    return 1
-  endfunction
-
-  function! linter.postprocess(entry) abort
-    if a:entry.text =~# '\[\d]$'
-      let a:entry.text = substitute(a:entry.text, '^\s*', '', '')
-      let level = str2nr(matchstr(a:entry.text, '\d\ze]$'))
-      if level >= 4
-        let a:entry.type = 'E'
-      elseif level >= 2
-        let a:entry.type = 'W'
-      else
-        let a:entry.type = 'I'
-      endif
-    endif
-  endfunction
-
-  let g:neomake_c_lint_maker = linter
-
-  if get(g:, 'nvimdev_auto_lint', 0)
-	call add(c_makers, 'lint')
-  endif
   let g:neomake_c_enabled_makers = c_makers
 
   " Use luacheck from .deps if not available/configured otherwise.
