@@ -13,3 +13,10 @@ end, {
   force=true,
   nargs='*' -- shouldn't need this. Must be a bug.
 })
+
+vim.cmd[[
+  augroup nvimdev_clint
+    autocmd!
+    autocmd BufRead * lua require('nvimdev.clint').attach()
+  augroup END
+]]
