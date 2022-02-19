@@ -7,6 +7,9 @@ local M = {}
 
 local ns = api.nvim_create_namespace('nvim_test')
 
+local subprocess0 = require('nvimdev.subprocess').subprocess
+local subprocess = async.wrap(subprocess0, 2)
+
 local function get_test_lnum(lnum, inc_describe)
   lnum =  lnum or vim.fn.line('.')
   local test
@@ -116,45 +119,6 @@ local function notify_err(msg)
   vim.notify(msg, vim.log.levels.ERROR)
 end
 
-local run_target = async.wrap(function(cwd, path, test, callback)
-  local stdout = vim.loop.new_pipe(false)
-  local stderr = vim.loop.new_pipe(false)
-
-  local stdout_data = ''
-
-  vim.loop.spawn('make', {
-    args = {
-      'functionaltest',
-      'TEST_FILE='..path,
-      'TEST_FILTER='..test
-    },
-    cwd = cwd,
-    stdio = { nil, stdout, stderr },
-  },
-    function(code)
-      if stdout then stdout:read_stop() end
-      if stderr then stderr:read_stop() end
-
-      if stdout and not stdout:is_closing() then stdout:close() end
-      if stderr and not stderr:is_closing() then stderr:close() end
-
-      callback(code, stdout_data)
-    end
-  )
-
-  stdout:read_start(function(_, data)
-    if data then
-      stdout_data = stdout_data..data
-    end
-  end)
-
-  stderr:read_start(function(_, data)
-    if data then
-      stdout_data = stdout_data..data
-    end
-  end)
-end, 4)
-
 local function running_diag(test)
   return {
     col = -1,
@@ -195,7 +159,16 @@ M.run_test = async.void(function(props)
 
   for i = #targets, 1, -1 do
     local test, test_lnum = unpack(targets[i])
-    local code, stdout = run_target(cwd, name, test)
+    local code, stdout = subprocess{
+      command = 'make',
+      args = {
+        'functionaltest',
+        'TEST_FILE='..name,
+        'TEST_FILTER='..test
+      },
+      cwd = cwd
+    }
+
     scheduler()
     local diag = diags[test_lnum]
     diag = process_result(diag, code, stdout)
