@@ -13,13 +13,23 @@ local subprocess = async.wrap(subprocess0, 2)
 local function parse_clint_output(output)
   local diags = {}
   for _, line in ipairs(vim.split(output or '', "\n")) do
-    local ok, _, row, msg = line:find('^[^:]*:(%d+): (.*)')
+    local ok, _, lnum, msg, level = line:find('^[^:]*:(%d+): (.*) %[(%d)%]$')
     if ok then
+      level = tonumber(level)
+      lnum = tonumber(lnum)
+      local severity
+      if level >= 4 then
+        severity = vim.diagnostic.severity.ERROR
+      elseif level >= 2 then
+        severity = vim.diagnostic.severity.WARN
+      else
+        severity = vim.diagnostic.severity.INFO
+      end
       diags[#diags+1] = {
-        lnum = tonumber(row)-1,
+        lnum = lnum-1,
         col = 0,
         message = msg,
-        severity = vim.diagnostic.severity.ERROR,
+        severity = severity,
         source = "clint",
       }
     end
