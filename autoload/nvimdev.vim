@@ -212,7 +212,7 @@ function! s:setup_neomake() abort
 
   let g:neomake_c_lint_maker = linter
 
-  if get(g:, 'nvimdev_auto_lint', 1)
+  if get(g:, 'nvimdev_auto_lint', 0)
 	call add(c_makers, 'lint')
   endif
   let g:neomake_c_enabled_makers = c_makers
