@@ -121,7 +121,7 @@ end
 
 local function running_diag(test)
   return {
-    col = -1,
+    col = 0,
     test = test,
     message = 'RUN: '..test,
     severity = vim.diagnostic.severity.WARN
