@@ -3,8 +3,16 @@ local scheduler = require('plenary.async.util').scheduler
 
 local subprocess0 = require('nvimdev.subprocess').subprocess
 
+suppress_url_base = "https://raw.githubusercontent.com/neovim/doc/gh-pages/reports/clint"
+
 local api = vim.api
 local uv = vim.loop
+
+local function log(msg)
+  vim.schedule(function()
+    print('[nvimdev] '..msg)
+  end)
+end
 
 local ns = api.nvim_create_namespace('nvim_test_clint')
 
@@ -64,6 +72,13 @@ local run = async.void(function(bufnr, check_file, suppress_file)
   vim.diagnostic.set(ns, bufnr, diags)
 end)
 
+local function download_suppress_file(url, output)
+  return subprocess{
+    command = 'wget',
+    args = { url, '--output-document', output }
+  }
+end
+
 M.attach = async.void(function()
   local bufnr = api.nvim_get_current_buf()
 
@@ -84,11 +99,20 @@ M.attach = async.void(function()
     return
   end
 
-  local suppress_file = root..'/build/errors/'..base:gsub('[/.]', '%-')..'.json'
+  local errors_base = base:gsub('[/.]', '%-')..'.json'
+  local suppress_file = root..'/build/errors/'..errors_base
 
   if not uv.fs_stat(suppress_file) then
-    print('[nvimdev] no file: '..suppress_file)
-    return
+    log('no file: '..suppress_file)
+
+    local code = download_suppress_file(
+      suppress_url_base ..'/'..errors_base, suppress_file)
+    if code ~= 0 then
+      log('failed to download: '..errors_base)
+      os.remove(suppress_file)
+      return
+    end
+    log('successfully downloaded suppress file for '..base)
   end
 
   -- This must be a relative path
