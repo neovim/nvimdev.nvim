@@ -60,7 +60,7 @@ local run = async.void(function(bufnr, check_file, suppress_file)
     command = vim.g.python3_host_prog or 'python',
     args = {
       './src/clint.py',
-      '--suppress-errors='..suppress_file,
+      '--suppress-errors='..(suppress_file or''),
       '--stdin-filename='..check_file,
       '-'
     },
@@ -121,12 +121,13 @@ M.attach = async.void(function()
 
     local code = download_suppress_file(
       suppress_url_base ..'/'..errors_base, suppress_file)
-    if code ~= 0 then
+    if code == 0 then
+      log('successfully downloaded suppress file for '..base)
+    else
       log('failed to download: '..errors_base)
       os.remove(suppress_file)
-      return
+      suppress_file = nil
     end
-    log('successfully downloaded suppress file for '..base)
   end
 
   -- This must be a relative path
