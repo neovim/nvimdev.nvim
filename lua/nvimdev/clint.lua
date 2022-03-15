@@ -48,6 +48,7 @@ end
 local M = {}
 
 local run = async.void(function(bufnr, check_file, suppress_file)
+  scheduler()
   local name = api.nvim_buf_get_name(bufnr)
   local cwd = name:match('^(.*)/test/functional/.*$')
 
@@ -78,6 +79,19 @@ local function download_suppress_file(url, output)
     args = { url, '--output-document', output }
   }
 end
+
+local function debounce_trailing(ms, fn)
+  local timer = vim.loop.new_timer()
+  return function(...)
+    local argv = {...}
+    timer:start(ms, 0, function()
+      timer:stop()
+      fn(unpack(argv))
+    end)
+  end
+end
+
+local run_debounced = debounce_trailing(500, run)
 
 M.attach = async.void(function()
   local bufnr = api.nvim_get_current_buf()
@@ -121,7 +135,7 @@ M.attach = async.void(function()
   scheduler()
   api.nvim_buf_attach(bufnr, true, {
     on_lines = function(_, buf, _)
-      run(buf, check_file, suppress_file)
+      run_debounced(buf, check_file, suppress_file)
     end
   })
 
