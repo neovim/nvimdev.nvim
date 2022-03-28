@@ -14,7 +14,7 @@ function M.subprocess(opts, on_exit)
   local stdout_data = ''
   local stderr_data = ''
 
-  uv.spawn(opts.command, {
+  local handle, err = uv.spawn(opts.command, {
     args = opts.args,
     cwd = opts.cwd,
     stdio = { stdin, stdout, stderr },
@@ -30,6 +30,14 @@ function M.subprocess(opts, on_exit)
       on_exit(code, stdout_data, stderr_data)
     end
   )
+
+  if not handle then
+    if stdout and not stdout:is_closing() then stdout:close() end
+    if stderr and not stderr:is_closing() then stderr:close() end
+    if stdin  and not stdin:is_closing()  then stdin:close() end
+    opts.input = nil
+    error('Failed to spawn process '..err..'\n'..vim.inspect(opts))
+  end
 
   stdout:read_start(function(_, data)
     if data then

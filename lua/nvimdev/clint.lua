@@ -57,7 +57,7 @@ local run = async.void(function(bufnr, check_file, suppress_file)
     '\n')..'\n'
 
   local _, stdout = subprocess{
-    command = vim.g.python3_host_prog or 'python',
+    command = vim.g.python3_host_prog or 'python3',
     args = {
       './src/clint.py',
       '--suppress-errors='..(suppress_file or''),
