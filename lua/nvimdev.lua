@@ -164,7 +164,7 @@ M.run_test = async.void(function(props)
       args = {
         'functionaltest',
         'TEST_FILE='..name,
-        'TEST_FILTER='..test:gsub('%W', '%%%0')
+        'TEST_FILTER='..vim.pesc(test)
       },
       cwd = cwd
     }
