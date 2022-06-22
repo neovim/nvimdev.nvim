@@ -7,7 +7,7 @@ Provides some nicities for hacking on [Neovim][]:
   - Configured to work well with the generated sources.
 - Build `cscope.out` on save.
   - Commands for looking up callers and callees from the current function.
-- Fast linting for C sources (clint.py).
+- Fast linting for C sources (clint.py and uncrustify).
   - Ignored errors list can be fetched/updated via `:NvimUpdateClintErrors`.
   - Uses `vim.diagnostic`
 - Configures Neomake's luacheck maker to use the version from the `.deps`

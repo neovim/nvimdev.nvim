@@ -3,10 +3,12 @@ local scheduler = require('plenary.async.util').scheduler
 
 local subprocess0 = require('nvimdev.subprocess').subprocess
 
-suppress_url_base = "https://raw.githubusercontent.com/neovim/doc/gh-pages/reports/clint"
+local suppress_url_base = "https://raw.githubusercontent.com/neovim/doc/gh-pages/reports/clint"
 
 local api = vim.api
 local uv = vim.loop
+
+local has_uncrustify = vim.fn.executable('uncrustify')
 
 local function log(msg)
   vim.schedule(function()
@@ -47,15 +49,7 @@ end
 
 local M = {}
 
-local run = async.void(function(bufnr, check_file, suppress_file)
-  scheduler()
-  local name = api.nvim_buf_get_name(bufnr)
-  local cwd = name:match('^(.*)/test/functional/.*$')
-
-  local text = table.concat(
-    api.nvim_buf_get_lines(bufnr, 0, -1, false),
-    '\n')..'\n'
-
+local function get_clint_diags(check_file, suppress_file, cwd, text)
   local _, stdout = subprocess{
     command = vim.g.python3_host_prog or 'python3',
     args = {
@@ -68,7 +62,61 @@ local run = async.void(function(bufnr, check_file, suppress_file)
     input = text,
   }
 
-  local diags = parse_clint_output(stdout)
+  return parse_clint_output(stdout)
+end
+
+local function get_uncrustify_diags(check_file, cwd, text, lines)
+  local code, stdout = subprocess{
+    command = 'uncrustify',
+    stderr = false,
+    args = {
+      '-q',
+      '-l', 'C',
+      '-c', './src/uncrustify.cfg',
+      '--check',
+      '--assume', check_file,
+    },
+    cwd = cwd,
+    input = text,
+  }
+
+  local ret = {}
+
+  if code > 0 then
+    local hunks = vim.diff(text, stdout, {result_type = 'indices'})
+    local stdout_lines = vim.split(stdout, '\n')
+
+    for _, hunk in ipairs(hunks) do
+      ret[#ret+1] = {
+        lnum    = hunk[1] - 1,
+        col     = 0,
+        source = 'uncrustify',
+        message = table.concat({
+          'Uncrustify error:',
+          '  -'..lines[hunk[1]],
+          '  +'..stdout_lines[hunk[3]]
+        }, '\n')
+      }
+    end
+  end
+
+  return ret
+end
+
+local run = async.void(function(bufnr, check_file, suppress_file)
+  scheduler()
+  local name = api.nvim_buf_get_name(bufnr)
+  local cwd = name:match('^(.*)/src/nvim/.*$')
+
+  local lines = api.nvim_buf_get_lines(bufnr, 0, -1, false)
+  local text = table.concat(lines, '\n')..'\n'
+
+  local diags = get_clint_diags(check_file, suppress_file, cwd, text)
+
+  if has_uncrustify then
+    vim.list_extend(diags, get_uncrustify_diags(check_file, cwd, text, lines))
+  end
+
   scheduler()
   vim.diagnostic.set(ns, bufnr, diags)
 end)
