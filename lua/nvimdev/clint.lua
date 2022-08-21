@@ -1,5 +1,5 @@
-local async = require('plenary.async.async')
-local scheduler = require('plenary.async.util').scheduler
+local async = require('nvimdev.async')
+local scheduler = async.scheduler
 
 local subprocess0 = require('nvimdev.subprocess').subprocess
 
