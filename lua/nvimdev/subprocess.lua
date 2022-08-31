@@ -20,12 +20,16 @@ function M.subprocess(opts, on_exit)
   local stdout_data = ''
   local stderr_data = ''
 
-  local handle, err = uv.spawn(opts.command, {
+  local handle, err
+  handle, err = uv.spawn(opts.command, {
     args = opts.args,
     cwd = opts.cwd,
     stdio = { stdin, opts.stdout or nil, opts.stderr  or nil},
   },
     function(code)
+      if handle and not handle:is_closing() then
+        handle:close()
+      end
       if opts.stdout then opts.stdout:read_stop() end
       if opts.stderr then opts.stderr:read_stop() end
 

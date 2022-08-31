@@ -130,6 +130,13 @@ end
 
 local function debounce_trailing(ms, fn)
   local timer = vim.loop.new_timer()
+  api.nvim_create_autocmd('VimLeavePre', {
+    callback = function()
+      if timer and not timer:is_closing() then
+        timer:close()
+      end
+    end
+  })
   return function(...)
     local argv = {...}
     timer:start(ms, 0, function()
