@@ -94,7 +94,7 @@ local function get_uncrustify_diags(check_file, cwd, text, lines)
         message = table.concat({
           'Uncrustify error:',
           '  -'..lines[hunk[1]],
-          '  +'..stdout_lines[hunk[3]]
+          '  +'..(stdout_lines[hunk[3]] or '???')
         }, '\n')
       }
     end
