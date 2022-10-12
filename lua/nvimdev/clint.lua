@@ -54,6 +54,7 @@ local function get_clint_diags(check_file, suppress_file, cwd, text)
     command = vim.g.python3_host_prog or 'python3',
     args = {
       './src/clint.py',
+      '--verbose=0',
       '--suppress-errors='..(suppress_file or''),
       '--stdin-filename='..check_file,
       '-'
@@ -121,13 +122,6 @@ local run = async.void(function(bufnr, check_file, suppress_file)
   vim.diagnostic.set(ns, bufnr, diags)
 end)
 
-local function download_suppress_file(url, output)
-  return subprocess{
-    command = 'wget',
-    args = { url, '--output-document', output }
-  }
-end
-
 local function debounce_trailing(ms, fn)
   local timer = vim.loop.new_timer()
   api.nvim_create_autocmd('VimLeavePre', {
@@ -163,23 +157,28 @@ M.attach = async.void(function()
   end
 
   if not root
-    or not uv.fs_stat(root..'/build/errors')
+    or not uv.fs_stat(root..'/build')
     or not uv.fs_stat(root..'/src/nvim') then
     return
   end
 
-  local errors_base = base:gsub('[/.]', '%-')..'.json'
-  local suppress_file = root..'/build/errors/'..errors_base
+  local suppress_file = root..'/build/clint_errors.json'
 
   if not uv.fs_stat(suppress_file) then
-    log('no file: '..suppress_file)
+    log('no file: build/clint_errors.json')
 
-    local code = download_suppress_file(
-      suppress_url_base ..'/'..errors_base, suppress_file)
+    local code = subprocess{
+      command = 'wget',
+      args = {
+        'https://raw.githubusercontent.com/neovim/doc/gh-pages/reports/clint/errors.json',
+        '--output-document', suppress_file
+      }
+    }
+
     if code == 0 then
-      log('successfully downloaded suppress file for '..base)
+      log('successfully downloaded build/clint_errors.json')
     else
-      log('failed to download: '..errors_base)
+      log('failed to download build/clint_errors.json ')
       os.remove(suppress_file)
       suppress_file = nil
     end
