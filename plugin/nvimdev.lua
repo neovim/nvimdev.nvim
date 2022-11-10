@@ -14,9 +14,9 @@ end, {
   nargs='*' -- shouldn't need this. Must be a bug.
 })
 
-vim.cmd[[
-  augroup nvimdev_clint
-    autocmd!
-    autocmd BufRead * lua require('nvimdev.clint').attach()
-  augroup END
-]]
+api.nvim_create_autocmd('BufRead', {
+  group = api.nvim_create_augroup('nvimdev_clint', {}),
+  callback = function()
+    require('nvimdev.clint').attach()
+  end
+})
