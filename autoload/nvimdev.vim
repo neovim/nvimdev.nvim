@@ -116,7 +116,6 @@ function! nvimdev#init(path) abort
     call s:nvimdev_setup_ft()
   endif
 
-  command! NvimUpdateClintErrors call nvimdev#update_clint_errors()
 endfunction
 
 function! s:nvimdev_setup_ft() abort
@@ -174,25 +173,6 @@ function! s:setup_neomake() abort
         \ && filereadable(s:path.'/.deps/usr/bin/luacheck')
     let g:neomake_lua_luacheck_exe = s:path.'/.deps/usr/bin/luacheck'
   endif
-endfunction
-
-
-function! nvimdev#update_clint_errors() abort
-  let interpreter=get(g:,'python3_host_prog','python3')
-  if !executable(interpreter)
-    echohl WarningMsg
-    echo '[nvimdev] Python 3 is required to download lint errors'
-    echohl None
-    return
-  endif
-
-  let cmd = [interpreter,
-        \ s:plugin . '/scripts/download_errors.py',
-        \ s:errors_root]
-  let opts = {
-        \ 'on_exit': function('s:errors_download_job'),
-        \ }
-  call jobstart(cmd, opts)
 endfunction
 
 
