@@ -14,3 +14,36 @@ api.nvim_create_autocmd('BufRead', {
     require('nvimdev.clint').attach()
   end
 })
+
+vim.api.nvim_create_autocmd('BufEnter', {
+  group = api.nvim_create_augroup('nvimdev', {}),
+  callback = function()
+    if vim.bo.buftype ~= '' then
+      return
+    end
+
+    -- Look for 'scripts/shadacat.py'.
+    -- It's a pretty unique filename and it sounds cool, like 'shadow cat'.
+    local file_hint = '/scripts/shadacat.py'
+    local last_path = vim.fn.expand('%')
+    local path = vim.fn.fnamemodify(last_path, ':p:h')
+
+    local found
+    while path ~= last_path do
+      if vim.fn.filereadable(path .. file_hint) then
+        found = path
+        break
+      end
+
+      last_path = path
+      path = vim.fn.fnamemodify(path, ':h')
+      if path == '' then
+        break
+      end
+    end
+
+    if found then
+      vim.call('nvimdev#init', found)
+    end
+  end
+})
