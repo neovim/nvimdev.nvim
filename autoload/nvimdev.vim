@@ -1,5 +1,4 @@
 let s:plugin = expand('<sfile>:p:h:h')
-let s:neomake_warn = 1
 
 function! nvimdev#setup_projectionist(bufpath) abort
   if exists('g:nvimdev_root') && stridx(a:bufpath, g:nvimdev_root) == 0
@@ -43,15 +42,6 @@ function! nvimdev#init(path) abort
   let s:errors_root = s:path . '/tmp/errors'
 
   call v:lua.require'nvimdev'.init(s:path)
-
-  if get(g:, 'loaded_neomake', 0)
-    call s:setup_neomake()
-  elseif s:neomake_warn
-    echohl WarningMsg
-    echomsg '[nvimdev] Neomake is not installed'
-    echohl None
-    let s:neomake_warn = 0
-  endif
 
   augroup nvimdev
     autocmd!
@@ -100,39 +90,6 @@ endfunction
 
 let s:warned_about_missing_error_files = 0
 
-function! s:setup_neomake() abort
-  let c_makers = []
-  " Use with :Neomake! make
-  " make will try to build  both dependancies and nvim
-  " Ignore entering .deps directory not to mess the quickfix-dirstack
-  let l:efm_backup=&errorformat
-  set errorformat&vim
-  let s:tmp_efm='%-Gninja: Entering directory `.deps'',' . &errorformat
-  let g:neomake_make_maker = {
-        \ 'exe': 'make',
-        \ 'args': ['VERBOSE=1'],
-        \ 'errorformat': s:tmp_efm,
-        \ 'remove_invalid_entries': get(g:, 'neomake_remove_invalid_entries', 0)
-        \ }
-  let &errorformat=efm_backup
-
-  function! g:neomake_make_maker.postprocess(entry) abort
-    if (a:entry.type ==? 'n')
-      let a:entry.type = 'I'
-    endif
-  endfunction
-
-  let g:neomake_c_enabled_makers = c_makers
-
-  " Use luacheck from .deps if not available/configured otherwise.
-  if !exists('g:neomake_lua_luacheck_exe')
-        \ && !executable('luacheck')
-        \ && filereadable(s:path.'/.deps/usr/bin/luacheck')
-    let g:neomake_lua_luacheck_exe = s:path.'/.deps/usr/bin/luacheck'
-  endif
-endfunction
-
-
 function! s:build_db(...) abort
   if !a:0
     if exists('s:db_timer')
@@ -171,7 +128,7 @@ endfunction
 
 function! s:build_db_job(job, data, event) dict abort
   " XXX: Log stdout/stderr on error without being obtrustive and without
-  " overwriting neomake results?
+  " overwriting results?
   if a:event ==# 'exit'
     unlet! s:{self.db . '_job'}
     if a:data != 0
