@@ -3,6 +3,13 @@ local scheduler = require('plenary.async.util').scheduler
 
 local api = vim.api
 
+local include_paths = {
+  'src',
+  '.deps/usr/include',
+  'build/src/nvim/auto',
+  'build/include',
+}
+
 local M = {}
 
 local ns = api.nvim_create_namespace('nvim_test')
@@ -179,6 +186,20 @@ end)
 function M.clear_test_decor()
   api.nvim_buf_clear_namespace(0, ns, 0, -1)
   vim.cmd'redraw'
+end
+
+function M.init(path)
+  vim.g.nvimdev_loaded = 2
+  vim.g.nvimdev_root = path
+
+  if vim.g.nvimdev_auto_cd then
+    vim.cmd.cd(path)
+  end
+
+  for _, inc in ipairs(include_paths) do
+    vim.o.path = vim.o.path..','..string.format('%s/%s', path, inc)
+  end
+
 end
 
 return M

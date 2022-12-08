@@ -1,11 +1,5 @@
 let s:plugin = expand('<sfile>:p:h:h')
 let s:neomake_warn = 1
-let s:include_paths = [
-      \ 'src',
-      \ '.deps/usr/include',
-      \ 'build/src/nvim/auto',
-      \ 'build/include',
-      \ ]
 
 function! nvimdev#setup_projectionist(bufpath) abort
   if exists('g:nvimdev_root') && stridx(a:bufpath, g:nvimdev_root) == 0
@@ -48,13 +42,7 @@ function! nvimdev#init(path) abort
   let s:path = a:path
   let s:errors_root = s:path . '/tmp/errors'
 
-  if get(g:, 'nvimdev_auto_cd', 1)
-    execute 'cd' s:path
-  endif
-
-  for inc in s:include_paths
-    let &path.=','.s:path.'/'.inc
-  endfor
+  call v:lua.require'nvimdev'.init(s:path)
 
   if get(g:, 'loaded_neomake', 0)
     call s:setup_neomake()
