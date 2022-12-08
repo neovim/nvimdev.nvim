@@ -114,11 +114,6 @@ let s:warned_about_missing_error_files = 0
 
 function! s:setup_neomake() abort
   let c_makers = []
-  if exists('#clang2') && index(c_makers, 'clang') == -1
-    " deoplete-clang2 (electric boogaloo) automatically sets compile flags.
-    call add(c_makers, 'clang')
-  endif
-
   " Use with :Neomake! make
   " make will try to build  both dependancies and nvim
   " Ignore entering .deps directory not to mess the quickfix-dirstack
