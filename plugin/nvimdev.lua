@@ -43,7 +43,7 @@ vim.api.nvim_create_autocmd('BufEnter', {
     end
 
     if found then
-      vim.call('nvimdev#init', found)
+      require'nvimdev'.init(found)
     end
   end
 })

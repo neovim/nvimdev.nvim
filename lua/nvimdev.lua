@@ -188,6 +188,44 @@ function M.clear_test_decor()
   vim.cmd'redraw'
 end
 
+local function setup_ft(path)
+  if vim.fn.stridx(vim.fn.expand('<afile>:p'), path) ~= 0 then
+    return
+  end
+
+  vim.bo.expandtab = true
+  vim.bo.shiftwidth = 2
+  vim.bo.softtabstop = 2
+  vim.bo.textwidth = 80
+  vim.bo.comments = ':///,://'
+  vim.bo.commentstring='// %s'
+  vim.bo.cinoptions='0('
+end
+
+local function setup_projectionist(bufpath)
+  if vim.g.nvimdev_root and vim.fn.stridx(bufpath, vim.g.nvimdev_root) == 0 then
+    -- Support $VIM_SOURCE_DIR (used with Neovim's scripts/vim-patch.sh).
+    local vim_src = vim.env'VIM_SOURCE_DIR'
+    if vim_src == '' then
+      vim_src = '.vim-src'
+    end
+    vim.call('projectionist#append', vim.g.nvimdev_root, {
+      ['src/nvim/*'] = {
+        alternate = vim_src..'/src/{}',
+      },
+      ['*'] = {
+        alternate = vim_src..'/{}',
+      },
+      [vim_src..'/src/*'] = {
+        alternate = 'src/nvim/{}',
+      },
+      [vim_src..'/*'] = {
+        alternate = '{}',
+      },
+    })
+  end
+end
+
 function M.init(path)
   vim.g.nvimdev_loaded = 2
   vim.g.nvimdev_root = path
@@ -200,6 +238,39 @@ function M.init(path)
     vim.o.path = vim.o.path..','..string.format('%s/%s', path, inc)
   end
 
+  api.nvim_create_autocmd({'BufEnter', 'BufNewFile'}, {
+    group = 'nvimdev',
+    pattern = '*.h',
+    command = 'set filetype=c'
+  })
+
+  api.nvim_create_autocmd('FileType', {
+    group = 'nvimdev',
+    pattern = 'c',
+    callback = function()
+      setup_ft(path)
+    end
+  })
+
+  if vim.g.loadded_projectionist then
+    api.nvim_create_autocmd('User', {
+      group = 'nvimdev',
+      pattern = 'ProjectionistDetect',
+      callback = function()
+        setup_projectionist(vim.g.projectionist_file)
+      end
+    })
+
+    vim.call('ProjectionistDetect', vim.fn.expand('%:p'))
+    vim.cmd'command! NvimDiff call nvimdev#diff()'
+  end
+
+  -- Init for first buffer, since this is called on BufEnter itself.
+  api.nvim_exec_autocmds('BufRead', { group = 'nvimdev' })
+
+  if vim.bo.filetype == 'c' then
+    setup_ft(path)
+  end
 end
 
 return M
