@@ -2,7 +2,7 @@ local api = vim.api
 
 api.nvim_create_user_command('NvimTestRun', function(props)
   require('nvimdev').run_test(props)
-end, { force = true })
+end, { force = true, nargs = '*' })
 
 api.nvim_create_user_command('NvimTestClear', function()
   require('nvimdev').clear_test_decor()
