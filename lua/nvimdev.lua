@@ -1,5 +1,5 @@
-local async = require('plenary.async.async')
-local scheduler = require('plenary.async.util').scheduler
+local async = require('nvimdev.async')
+local scheduler = require('nvimdev.async').scheduler
 
 local api = vim.api
 
@@ -14,13 +14,17 @@ local M = {}
 
 local ns = api.nvim_create_namespace('nvim_test')
 
-local subprocess0 = require('nvimdev.subprocess').subprocess
-local subprocess = async.wrap(subprocess0, 2)
+--- @type fun(cmd: string[], opt: table<string,any>): SystemCompleted
+local system = async.wrap(vim.system, 3)
 
+--- @param lnum integer
+--- @param inc_describe boolean
+--- @return string test
+--- @return integer test_lnum
 local function get_test_lnum(lnum, inc_describe)
   lnum =  lnum or vim.fn.line('.')
-  local test
-  local test_lnum
+  local test --- @type string
+  local test_lnum --- @type integer
   for i = lnum, 1, -1 do
     for _, pat in ipairs {
       "^%s*it%s*%(%s*['\"](.*)['\"']%s*,",
@@ -42,10 +46,12 @@ local function get_test_lnum(lnum, inc_describe)
   return test, test_lnum
 end
 
+--- @param all boolean
+--- @return {[1]: string, [2]: integer}[]
 local function get_test_lnums(all)
   local lnum = vim.fn.line(all and '$' or '.')
 
-  local res = {}
+  local res = {} --- @type {[1]: string, [2]: integer}[]
   repeat
     local test, test_lnum = get_test_lnum(lnum, false)
     if test then
@@ -60,15 +66,17 @@ local function get_test_lnums(all)
   return res
 end
 
+---@param in_lines string[]
+---@return string[]
 local function filter_test_output(in_lines)
-  local lines = {}
+  local lines = {} --- @type string[]
   local collect = false
   for _, l in ipairs(in_lines) do
-    if not collect and l:match('%[ RUN') then
+    if not collect and l:match('^RUN') then
       collect = true
     end
     if collect and l ~= '' then
-      if l:match('Tests exited non%-zero:') then
+      if l:match('NVIM_LOG_FILE') then
         break
       end
       lines[#lines+1] = l
@@ -81,58 +89,36 @@ local function filter_test_output(in_lines)
   return lines
 end
 
-local function create_virt_lines(lines)
-  local virt_lines = {}
-  for _, l in ipairs(lines) do
-    virt_lines[#virt_lines+1] = {{l, 'ErrorMsg'}}
-  end
-  return virt_lines
-end
-
+---@param bufnr integer
+---@param diags Diagnostic[]
 local function set_diagnostics(bufnr, diags)
-  local diags0 = {}
+  local diags0 = {} --- @type Diagnostic[]
 
   for lnum, diag in pairs(diags) do
     diag.lnum = lnum - 1
     diags0[#diags0+1] = diag
-
-    if diag.virt_lines then
-      api.nvim_buf_set_extmark(bufnr, ns, lnum-1, -1, {
-        id = lnum,
-        virt_lines = diag.virt_lines,
-        virt_lines_above = true
-      })
-    end
   end
 
   vim.diagnostic.set(ns, bufnr, diags0)
 end
 
+---@param diag Diagnostic
+---@param code integer
+---@param stdout string
 local function process_result(diag, code, stdout)
+  local stdout_lines = vim.split(stdout, '\n')
+  local lines = filter_test_output(stdout_lines)
   if code > 0 then
-    local stdout_lines = vim.split(stdout, '\n')
-    local lines = filter_test_output(stdout_lines)
-    diag.virt_lines = create_virt_lines(lines)
     diag.severity = vim.diagnostic.severity.ERROR
-    diag.message = 'FAIL: '..diag.test
+    diag.message = 'FAIL: '..diag.test..'\n'..table.concat(lines, '\n')
   else
     diag.severity = vim.diagnostic.severity.HINT
-    diag.message = 'PASS: '..diag.test
+    diag.message = 'PASS'
   end
-  return diag
 end
 
 local function notify_err(msg)
   vim.notify(msg, vim.log.levels.ERROR)
-end
-
-local function running_diag(test)
-  return {
-    col = 0,
-    test = test,
-    message = 'RUN: '..test,
-    severity = vim.diagnostic.severity.WARN
-  }
 end
 
 M.run_test = async.void(function(props)
@@ -154,31 +140,51 @@ M.run_test = async.void(function(props)
   local cwd = name:match('^(.*)/test/functional/.*$')
   local cbuf = api.nvim_get_current_buf()
 
-  vim.api.nvim_buf_clear_namespace(cbuf, ns, 0, -1)
+  api.nvim_buf_clear_namespace(cbuf, ns, 0, -1)
 
-  local diags = {}
+  local diags = {} --- @type Diagnostic[]
   for i = #targets, 1, -1 do
-    local test, test_lnum = unpack(targets[i])
-    diags[test_lnum] = running_diag(test)
+    local test, test_lnum = targets[i][1], targets[i][2]
+    diags[test_lnum] = {
+      col = 0,
+      test = test,
+      message = 'RUN: '..test,
+      severity = vim.diagnostic.severity.WARN
+    }
   end
 
   set_diagnostics(cbuf, diags)
 
   for i = #targets, 1, -1 do
-    local test, test_lnum = unpack(targets[i])
-    local code, stdout = subprocess{
-      command = 'make',
-      args = {
+    local test, test_lnum = targets[i][1], targets[i][2]
+    local stdout_chunks = {} --- @type string[]
+    local obj = system({
+        'make',
         'functionaltest',
         'TEST_FILE='..name,
         'TEST_FILTER='..vim.pesc(test)
-      },
-      cwd = cwd
-    }
+      }, {
+        cwd = cwd,
+        env = { TEST_COLORS = 0 },
+        stdout = function(_err, data)
+          if not data then
+            return
+          end
+
+          stdout_chunks[#stdout_chunks+1] = data
+          local diag = diags[test_lnum]
+          diag.message = 'RUN: '..diag.test..'\n'..data
+          vim.schedule(function()
+            set_diagnostics(cbuf, diags)
+          end)
+        end
+      })
+
+    local stdout = table.concat(stdout_chunks, '')
 
     scheduler()
     local diag = diags[test_lnum]
-    diag = process_result(diag, code, stdout)
+    process_result(diag, obj.code, stdout)
     set_diagnostics(cbuf, diags)
   end
 end)
@@ -205,7 +211,7 @@ end
 local function setup_projectionist(bufpath)
   if vim.g.nvimdev_root and vim.fn.stridx(bufpath, vim.g.nvimdev_root) == 0 then
     -- Support $VIM_SOURCE_DIR (used with Neovim's scripts/vim-patch.sh).
-    local vim_src = vim.env'VIM_SOURCE_DIR'
+    local vim_src = vim.env'VIM_SOURCE_DIR' --- @type string
     if vim_src == '' then
       vim_src = '.vim-src'
     end
