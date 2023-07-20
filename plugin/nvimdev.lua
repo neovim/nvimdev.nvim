@@ -28,7 +28,7 @@ vim.api.nvim_create_autocmd('BufEnter', {
     local last_path = vim.fn.expand('%')
     local path = vim.fn.fnamemodify(last_path, ':p:h')
 
-    local found
+    local found --- @type string?
     while path ~= last_path do
       if vim.fn.filereadable(path .. file_hint) then
         found = path

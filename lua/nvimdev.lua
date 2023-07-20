@@ -232,6 +232,12 @@ local function setup_projectionist(bufpath)
   end
 end
 
+--- @type table<string,integer>
+local h_autocmds = {}
+
+--- @type table<string,integer>
+local ft_autocmds = {}
+
 function M.init(path)
   vim.g.nvimdev_loaded = 2
   vim.g.nvimdev_root = path
@@ -244,19 +250,28 @@ function M.init(path)
     vim.o.path = vim.o.path..','..string.format('%s/%s', path, inc)
   end
 
-  api.nvim_create_autocmd({'BufEnter', 'BufNewFile'}, {
-    group = 'nvimdev',
-    pattern = '*.h',
-    command = 'set filetype=c'
-  })
+  if not h_autocmds[path] then
+    h_autocmds[path] = api.nvim_create_autocmd({'BufEnter', 'BufNewFile'}, {
+      group = 'nvimdev',
+      pattern = '*.h',
+      callback = function()
+        if vim.fn.stridx(vim.fn.expand('<afile>:p'), path) ~= 0 then
+          return
+        end
+        vim.bo.filetype = 'c'
+      end
+    })
+  end
 
-  api.nvim_create_autocmd('FileType', {
-    group = 'nvimdev',
-    pattern = 'c',
-    callback = function()
-      setup_ft(path)
-    end
-  })
+  if not ft_autocmds[path] then
+    ft_autocmds[path] = api.nvim_create_autocmd('FileType', {
+      group = 'nvimdev',
+      pattern = 'c',
+      callback = function()
+        setup_ft(path)
+      end
+    })
+  end
 
   if vim.g.loadded_projectionist then
     api.nvim_create_autocmd('User', {
