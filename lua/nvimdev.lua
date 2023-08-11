@@ -273,7 +273,7 @@ function M.init(path)
     })
   end
 
-  if vim.g.loadded_projectionist then
+  if vim.g.loaded_projectionist then
     api.nvim_create_autocmd('User', {
       group = 'nvimdev',
       pattern = 'ProjectionistDetect',
