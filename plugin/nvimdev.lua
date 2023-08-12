@@ -30,7 +30,7 @@ vim.api.nvim_create_autocmd('BufEnter', {
 
     local found --- @type string?
     while path ~= last_path do
-      if vim.fn.filereadable(path .. file_hint) then
+      if vim.fn.filereadable(path .. file_hint) ~= 0 then
         found = path
         break
       end

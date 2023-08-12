@@ -4,7 +4,7 @@ local scheduler = async.scheduler
 local api = vim.api
 local uv = vim.loop
 
-local has_uncrustify = vim.fn.executable('uncrustify')
+local has_uncrustify = vim.fn.executable('uncrustify') ~= 0
 
 local ns = api.nvim_create_namespace('nvim_test_clint')
 
