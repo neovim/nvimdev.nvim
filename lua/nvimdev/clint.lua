@@ -4,8 +4,6 @@ local scheduler = async.scheduler
 local api = vim.api
 local uv = vim.loop
 
-local has_uncrustify = vim.fn.executable('uncrustify') ~= 0
-
 local ns = api.nvim_create_namespace('nvim_test_clint')
 
 --- @type fun(cmd: string[], opt: SystemOpts): SystemCompleted
@@ -64,7 +62,7 @@ end
 --- @return Diagnostic[]
 local function get_uncrustify_diags(check_file, cwd, text, lines)
   local obj = system({
-    'uncrustify',
+    './build/usr/bin/uncrustify',
     '-q',
     '-l', 'C',
     '-c', './src/uncrustify.cfg',
@@ -110,7 +108,7 @@ local run = async.void(function(bufnr, check_file)
 
   local diags = get_clint_diags(check_file, cwd, text)
 
-  if has_uncrustify then
+  if vim.fn.executable('./build/usr/bin/uncrustify') ~= 0 then
     vim.list_extend(diags, get_uncrustify_diags(check_file, cwd, text, lines))
   end
 
