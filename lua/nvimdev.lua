@@ -199,10 +199,6 @@ local function setup_ft(path)
     return
   end
 
-  vim.bo.expandtab = true
-  vim.bo.shiftwidth = 2
-  vim.bo.softtabstop = 2
-  vim.bo.textwidth = 80
   vim.bo.comments = ':///,://'
   vim.bo.commentstring='// %s'
   vim.bo.cinoptions='0('
