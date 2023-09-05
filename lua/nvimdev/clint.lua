@@ -78,7 +78,7 @@ local function get_uncrustify_diags(check_file, cwd, text, lines)
   local ret = {}
 
   if obj.code > 0 then
-    local hunks = vim.diff(text, obj.stdout, {result_type = 'indices'})
+    local hunks = vim.diff(text, obj.stdout, {result_type = 'indices'}) --[[@as string[] ]]
     local stdout_lines = vim.split(obj.stdout, '\n')
 
     for _, hunk in ipairs(hunks) do
@@ -145,7 +145,7 @@ M.attach = async.void(function()
 
   local name = api.nvim_buf_get_name(bufnr)
 
-  --- @type integer, any, string, string
+  --- @type integer?, any, string, string
   local ok, _, root, base = name:find('(.*)/src/nvim/(.*)')
   if not ok then
     return
