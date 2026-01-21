@@ -43,7 +43,7 @@ Automatically `:cd` to the Neovim root after init.
 
 - [nvim-cmp][]: Completions!
 - [cmp-nvim-lsp][]: LSP completion source!
-- [nvim-lspconfig][]: LSP configuration for [clangd][] and [sumneko-lua-lsp][].
+- [nvim-lspconfig][]: LSP configuration for [clangd][] and [lua-language-server][].
 - [nvim-treesitter][]: Better syntax highlighting for C and Lua files.
 - [neodev.nvim][]: Neovim Lua development.
 
@@ -52,7 +52,7 @@ Automatically `:cd` to the Neovim root after init.
 [nvim-cmp]: https://github.com/hrsh7th/nvim-cmp
 [cmp-nvim-lsp]: hrsh7th/cmp-nvim-lsp
 [nvim-lspconfig]: https://github.com/neovim/nvim-lspconfig
-[sumneko-lua-lsp]: https://github.com/sumneko/lua-language-server
+[lua-language-server]: https://github.com/LuaLS/lua-language-server
 [clangd]: https://clangd.llvm.org
 [gist]: https://gist.github.com/tweekmonster/8f9cfb36a56d7d1bb6a73e0f9589d81f
 [vim-projectionist]: https://github.com/tpope/vim-projectionist
